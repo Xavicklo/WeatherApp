@@ -12,14 +12,23 @@
   <div class="main-content">
     {{> header }}
 
-    <p>Use this site to get your Weather</p>
+    <h2>Use this site to get your Weather</h2>
 
     <form>
       <input placeholder="Location">
       <button>Search</button>
     </form>
-    <p id="message-1"></p>
-    <p id="message-2"></p>
+    <h2 id="message-location"></h2>
+    <h3 id="message-weather"></h3>
+    <p id="message-temp"></p>
+    <p id="message-humidity"></p>
+    <p id="message-windspeed"></p>
+    <p id="message-visibility"></p>
+    <p id="message-pressure"></p>
+    <p id ="message-country"></p>
+    <p id ="message-region">
+    <p id="message-localtime"></p>
+    <p id="message-global-site"></p>
   </div>
   
   {{> footer }}

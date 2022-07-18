@@ -14,15 +14,22 @@ const forecast = (latitude, longitude, callback) => {
     } else if (body.error) {
       callback("Unable to find location", undefined);
     } else {
-      callback(
-        undefined,
-        body.current.weather_descriptions[0] +
-          ". It is currently " +
-          body.current.temperature +
-          " degrees out. It feels like " +
-          body.current.feelslike +
-          " degrees out."
-      );
+      callback(undefined, {
+        weather: body.current.weather_descriptions[0],
+        icons: body.current.weather_icons[0],
+        temparature: body.current.temperature,
+        feelslike: body.current.feelslike,
+        humidity: body.current.humidity,
+        windspeed: body.current.wind_speed,
+        uv: body.current.uv_index,
+        visibility: body.current.visibility,
+        pressure: body.current.pressure,
+        country: body.location.country,
+        region: body.location.region,
+        localtime: body.location.localtime,
+        longitude: body.location.lon,
+        latitude: body.location.lat,
+      });
     }
   });
 };
