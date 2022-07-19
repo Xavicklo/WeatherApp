@@ -97,3 +97,6 @@ button{
   padding: 8px;
   margin-bottom: 16px;
 }
+button:hover{
+  background-image: linear-gradient(to right, #a8e063, #56ab2f);
+}
