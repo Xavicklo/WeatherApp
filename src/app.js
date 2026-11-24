@@ -42,7 +42,9 @@ function createApp(deps = {}) {
     next();
   });
 
-  app.use(express.static(path.join(__dirname, "../public"), { maxAge: "1h" }));
+  // Cache static files in production only, so code changes show up immediately during development.
+  const isProd = process.env.NODE_ENV === "production";
+  app.use(express.static(path.join(__dirname, "../public"), { maxAge: isProd ? "1h" : 0 }));
 
   // Values every page uses
   app.use((req, res, next) => {

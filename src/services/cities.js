@@ -9,10 +9,10 @@ const { describe } = require("../lib/wmo");
 const FORECAST_URL = "https://api.open-meteo.com/v1/forecast";
 
 const CITIES = [
-  { name: "Keelung", lat: 25.1276, lon: 121.7392 },
+  { name: "Keelung", lat: 25.1276, lon: 121.7392, minZoom: 9 },
   { name: "Taipei", lat: 25.033, lon: 121.5654 },
-  { name: "Zhonghe", lat: 24.9994, lon: 121.4987 },
-  { name: "Taoyuan", lat: 24.9936, lon: 121.301 },
+  { name: "Zhonghe", lat: 24.9994, lon: 121.4987, minZoom: 10 },
+  { name: "Taoyuan", lat: 24.9936, lon: 121.301, minZoom: 9 },
   { name: "Hsinchu", lat: 24.8138, lon: 120.9675 },
   { name: "Yilan", lat: 24.7021, lon: 121.7378 },
   { name: "Taichung", lat: 24.1477, lon: 120.6736 },
@@ -37,6 +37,7 @@ function toFeatureCollection(cities, bodies) {
         geometry: { type: "Point", coordinates: [city.lon, city.lat] },
         properties: {
           name: city.name,
+          minZoom: city.minZoom || 0, // smaller places only appear when zoomed in, so labels don't overlap
           temperature: current.temperature_2m == null ? null : Math.round(current.temperature_2m * 10) / 10,
           ...describe(current.weather_code, current.is_day !== 0),
         },

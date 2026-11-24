@@ -8,5 +8,7 @@ services:
     startCommand: npm start
     healthCheckPath: /healthz
     envVars:
+      - key: NODE_ENV
+        value: production
       - key: NODE_VERSION
         value: "20"

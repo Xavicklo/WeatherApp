@@ -87,12 +87,25 @@
     return group;
   }
 
+  /** Hide city labels whose minZoom is above the current zoom (simple label-collision control). */
+  function applyMinZoom(map, cityLayer) {
+    const zoom = map.getZoom();
+    cityLayer.eachLayer((m) => {
+      const el = m.getElement();
+      if (el) el.style.display = zoom >= (m.feature.properties.minZoom || 0) ? "" : "none";
+    });
+  }
+
   function init(containerId, { onPick, getUnit }) {
     const map = L.map(containerId, { zoomControl: true, worldCopyJump: true }).setView(TAIWAN, 7);
     const bases = createBaseLayers();
     bases.Streets.addTo(map);
 
     const cities = createCityLayer(getUnit).addTo(map);
+    const refreshLabels = () => applyMinZoom(map, cities);
+    map.on("zoomend", refreshLabels);
+    cities.on("layeradd", refreshLabels);
+    map.on("overlayadd", refreshLabels);
     const radar = createRadarLayer();
     L.control.layers(bases, { "City temperatures": cities, "Rain radar": radar }, { collapsed: true }).addTo(map);
     L.control.scale({ imperial: false }).addTo(map);
@@ -114,6 +127,7 @@
       },
       refreshUnits() {
         cities.refreshUnits();
+        refreshLabels();
       },
       invalidateSize() {
         map.invalidateSize();
