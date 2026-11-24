@@ -9,7 +9,7 @@ Built with **Node.js + Express + Handlebars** on the server and **plain JavaScri
 - **Search by place name**, with region hints to tell places apart (`Paris, Texas` vs `Paris, France`)
 - **Interactive map (Leaflet)**
   - Click any point to get its weather. The point is reverse-geocoded to a place name with OpenStreetMap Nominatim.
-  - Base-layer switcher: Streets (OSM), Light (CARTO) or Satellite (Esri)
+  - Base-layer switcher: Streets (OSM), Light (Esri Light Gray), Topo (OpenTopoMap) or Satellite (Esri)
   - **GeoJSON point layer** showing the current temperature in 14 Taiwanese cities (`/api/cities`), fetched with a single multi-location upstream request
   - Rain-radar overlay (RainViewer tiles) and a metric scale bar
 - Current conditions, a **24-hour temperature chart** (hand-drawn SVG) and a **7-day forecast** with temperature-range bars
@@ -70,4 +70,4 @@ npm start       # http://localhost:3000
 
 ## Data sources
 
-[Open-Meteo](https://open-meteo.com/) (forecast and geocoding) · [OpenStreetMap Nominatim](https://nominatim.org/) (reverse geocoding) · [Leaflet](https://leafletjs.com/) · map tiles © OpenStreetMap contributors, © CARTO, © Esri · radar © [RainViewer](https://www.rainviewer.com/)
+[Open-Meteo](https://open-meteo.com/) (forecast and geocoding) · [OpenStreetMap Nominatim](https://nominatim.org/) (reverse geocoding) · [Leaflet](https://leafletjs.com/) · map tiles © OpenStreetMap contributors, © Esri, © OpenTopoMap · radar © [RainViewer](https://www.rainviewer.com/)

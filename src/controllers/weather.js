@@ -58,7 +58,7 @@ function createWeatherController({ geocode, forecast, reverseGeocode, logger = c
     } catch (err) {
       const status = err.status && err.status >= 400 && err.status < 600 ? err.status : 500;
       if (status >= 500) logger.error("[weather]", err.message, err.cause ? `(${err.cause.message})` : "");
-      const message = status === 500 ? "Something went wrong. Please try again." : err.message;
+      const message = status === 500 && !err.status ? "Something went wrong. Please try again." : err.message;
       return { status, body: { error: message } };
     }
   };
