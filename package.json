@@ -1,21 +1,26 @@
 {
-  "name": "WeatherApp",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "weather-app",
+  "version": "2.0.0",
+  "description": "Search any city for current conditions, a 24-hour trend and a 7-day forecast. Express + Handlebars, powered by Open-Meteo.",
+  "main": "src/server.js",
   "scripts": {
-    "start": "node src/app.js",
-    "dev": "nodemon src/app.js -e js,hbs"
+    "start": "node src/server.js",
+    "dev": "node --watch-path=src --watch-path=templates src/server.js",
+    "test": "node --test"
   },
-  "keywords": [],
-  "author": "",
+  "engines": {
+    "node": ">=18.17"
+  },
+  "keywords": [
+    "weather",
+    "express",
+    "handlebars",
+    "open-meteo"
+  ],
+  "author": "Xavick Lo",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.18.1",
-    "hbs": "^4.0.1",
-    "request": "^2.88.0"
-  },
-  "devDependencies": {
-    "nodemon": "^2.0.19"
+    "express": "^4.21.2",
+    "hbs": "^4.2.0"
   }
 }

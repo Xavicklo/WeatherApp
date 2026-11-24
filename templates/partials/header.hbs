@@ -1,6 +1,13 @@
-<header>
-  <h1>{{title}}</h1>
-    <li><a href="/">Weather</a></li>
-    <li><a href="/about">About</a></li>
-    <li><a href="/help">Help</a></li>
+<header class="site-header">
+  <a class="brand" href="/" aria-label="Weather home">
+    <img class="moon" src="/img/moon.png" alt="" width="40" height="40">
+    <span>Weather</span>
+  </a>
+  <nav aria-label="Main">
+    <ul>
+      <li><a href="/" {{#if (eq path "/")}}aria-current="page"{{/if}}>Weather</a></li>
+      <li><a href="/about" {{#if (eq path "/about")}}aria-current="page"{{/if}}>About</a></li>
+      <li><a href="/help" {{#if (eq path "/help")}}aria-current="page"{{/if}}>Help</a></li>
+    </ul>
+  </nav>
 </header>

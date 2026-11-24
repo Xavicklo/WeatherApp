@@ -1,0 +1,121 @@
+const test = require("node:test");
+const assert = require("node:assert/strict");
+
+const TTLCache = require("../src/lib/cache");
+const { describe: wmo } = require("../src/lib/wmo");
+const { createGeocoder, parseQuery } = require("../src/services/geocode");
+const { createForecaster, normalize, currentHourIndex } = require("../src/services/forecast");
+const { getJson } = require("../src/lib/http");
+const { createCityLayer, CITIES } = require("../src/services/cities");
+const { createReverseGeocoder, formatAddress } = require("../src/services/reverseGeocode");
+const { geocodeParis, forecastBody, fakeFetch } = require("./fixtures");
+
+const GEO = "https://geocoding-api.open-meteo.com";
+const WX = "https://api.open-meteo.com";
+
+test("TTLCache expires entries and evicts the oldest", () => {
+  let now = 0;
+  const cache = new TTLCache({ ttlMs: 100, maxEntries: 2, now: () => now });
+  cache.set("a", 1);
+  cache.set("b", 2);
+  cache.set("c", 3); // evicts "a"
+  assert.equal(cache.get("a"), undefined);
+  assert.equal(cache.get("b"), 2);
+  now = 150;
+  assert.equal(cache.get("b"), undefined);
+});
+
+test("wmo codes map to text and a day/night icon", () => {
+  assert.deepEqual(wmo(0, true), { text: "Clear sky", icon: "☀️" });
+  assert.deepEqual(wmo(0, false), { text: "Clear sky", icon: "🌙" });
+  assert.equal(wmo(999).text, "Unknown");
+});
+
+test("parseQuery splits a place from its region hints", () => {
+  assert.deepEqual(parseQuery(" Paris , Texas "), { name: "Paris", hints: ["texas"] });
+  assert.deepEqual(parseQuery("Taipei"), { name: "Taipei", hints: [] });
+});
+
+test("geocoder picks the candidate that matches the hint", async () => {
+  const fetchImpl = fakeFetch({ [GEO]: geocodeParis });
+  const geocode = createGeocoder({ fetchImpl });
+  const texas = await geocode("Paris, Texas");
+  assert.equal(texas.location, "Paris, Texas, United States");
+  const france = await geocode("Paris");
+  assert.equal(france.country, "France");
+  assert.match(fetchImpl.calls[0], /name=Paris&/);
+});
+
+test("geocoder returns 404 for unknown places and caches hits", async () => {
+  const cache = new TTLCache();
+  const empty = createGeocoder({ fetchImpl: fakeFetch({ [GEO]: {} }), cache });
+  await assert.rejects(empty("Nowhereville"), { status: 404 });
+
+  const fetchImpl = fakeFetch({ [GEO]: geocodeParis });
+  const geocode = createGeocoder({ fetchImpl, cache });
+  await geocode("Paris");
+  await geocode("paris");
+  assert.equal(fetchImpl.calls.length, 1, "second lookup should come from the cache");
+});
+
+test("currentHourIndex finds the slot for the current hour", () => {
+  const times = ["2026-11-24T18:00", "2026-11-24T19:00", "2026-11-24T20:00"];
+  assert.equal(currentHourIndex(times, "2026-11-24T19:15"), 1);
+  assert.equal(currentHourIndex(times, "2030-01-01T00:00"), 0);
+});
+
+test("normalize reshapes Open-Meteo data for the UI", () => {
+  const data = normalize(forecastBody);
+  assert.equal(data.current.temperature, 21.4);
+  assert.equal(data.current.isDay, false);
+  assert.equal(data.current.text, "Overcast");
+  assert.equal(data.current.visibility, 24.1);
+  assert.equal(data.current.uvIndex, 4.4);
+  assert.equal(data.hourly.length, 24);
+  assert.equal(data.hourly[0].time, "2026-11-24T19:00");
+  assert.equal(data.daily.length, 7);
+  assert.equal(data.daily[2].text, "Rain");
+});
+
+test("forecaster caches by rounded coordinates", async () => {
+  const fetchImpl = fakeFetch({ [WX]: forecastBody });
+  const forecast = createForecaster({ fetchImpl, cache: new TTLCache() });
+  const first = await forecast(25.0330, 121.5654);
+  const second = await forecast(25.0331, 121.5651);
+  assert.equal(first.cached, false);
+  assert.equal(second.cached, true);
+  assert.equal(fetchImpl.calls.length, 1);
+  assert.match(fetchImpl.calls[0], /latitude=25\.03&longitude=121\.57/);
+});
+
+test("getJson turns network failures and bad statuses into 5xx errors", async () => {
+  await assert.rejects(getJson("x", { fetchImpl: fakeFetch({ x: new Error("ECONNRESET") }) }), { status: 502 });
+  const timeout = Object.assign(new Error("timed out"), { name: "TimeoutError" });
+  await assert.rejects(getJson("x", { fetchImpl: fakeFetch({ x: timeout }) }), { status: 504 });
+  await assert.rejects(getJson("x", { fetchImpl: fakeFetch({ x: { status: 500, body: {} } }) }), { status: 502 });
+});
+
+test("reverse geocoder formats Nominatim addresses and falls back on errors", async () => {
+  assert.equal(
+    formatAddress({ address: { city: "Taipei", state: "Taiwan Province", country: "Taiwan" } }),
+    "Taipei, Taiwan Province, Taiwan"
+  );
+  const NOM = "https://nominatim.openstreetmap.org";
+  const ok = createReverseGeocoder({ fetchImpl: fakeFetch({ [NOM]: { address: { town: "Zhonghe", state: "New Taipei", country: "Taiwan" } } }) });
+  assert.equal((await ok(25.0, 121.5)).location, "Zhonghe, New Taipei, Taiwan");
+
+  const down = createReverseGeocoder({ fetchImpl: fakeFetch({ [NOM]: new Error("ECONNRESET") }) });
+  assert.equal((await down(25.0, 121.5)).location, "Selected location");
+});
+
+test("city layer is valid GeoJSON built from one multi-location request", async () => {
+  const bodies = CITIES.map((c, i) => ({ current: { temperature_2m: 20 + i, weather_code: 0, is_day: 1 } }));
+  const fetchImpl = fakeFetch({ [WX]: bodies });
+  const layer = await createCityLayer({ fetchImpl })();
+  assert.equal(fetchImpl.calls.length, 1);
+  assert.equal(layer.type, "FeatureCollection");
+  assert.equal(layer.features.length, CITIES.length);
+  const taipei = layer.features.find((f) => f.properties.name === "Taipei");
+  assert.deepEqual(taipei.geometry.coordinates, [121.5654, 25.033], "GeoJSON is [lon, lat]");
+  assert.equal(taipei.properties.icon, "☀️");
+});

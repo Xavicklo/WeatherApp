@@ -1,44 +1,87 @@
 <!DOCTYPE html>
-
-<html>
-
+<html lang="en">
 <head>
-  <title>{{title}}</title>
-  <link rel= "icon" href="../img/weather_icon.png"> </link>
-  <link rel="stylesheet" href="/css/style.css">
+  {{> head }}
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 </head>
-
-<body>
-  <img class ="moon" src="../img/moon.png"></img>
-  <img class = "hole" src="../img/hole.png"></img>
-  <img class="stand" src="../img/stand.png"></img>
-  <div class = "body">
-    <div class="main-content">
+<body data-theme="night">
+  <div class="page">
     {{> header }}
 
-    <h2>Use this site to get your weather</h2>
+    <main class="main-content">
+      <section class="search-panel" aria-labelledby="search-title">
+        <h1 id="search-title">What's the weather like?</h1>
+        <form id="search-form" class="search-form" role="search" autocomplete="off">
+          <label for="search-input" class="visually-hidden">City or place</label>
+          <input id="search-input" name="address" type="search" placeholder="Search a city, e.g. Taipei or Paris, France" maxlength="100" required>
+          <button type="submit" id="search-button">Search</button>
+        </form>
+        <div class="toolbar">
+          <button type="button" id="locate-button" class="ghost">📍 My location</button>
+          <div class="unit-toggle" role="group" aria-label="Temperature unit">
+            <button type="button" data-unit="C" aria-pressed="true">°C</button>
+            <button type="button" data-unit="F" aria-pressed="false">°F</button>
+          </div>
+        </div>
+        <ul id="recent" class="recent" aria-label="Recent searches"></ul>
+      </section>
 
-    <form>
-      <input placeholder="Location">
-      <button>Search</button>
-    </form>
-    <h2 id="message-location"></h2>
-    <h3 id="message-weather"></h3>
-    <p id="message-temp"></p>
-    <p id="message-humidity"></p>
-    <p id="message-windspeed"></p>
-    <p id="message-visibility"></p>
-    <p id="message-pressure"></p>
-    <p id ="message-country"></p>
-    <p id ="message-region">
-    <p id="message-localtime"></p>
-    <p id="message-global-site"></p>
+      <section class="card map-card" aria-label="Map">
+        <div id="map" class="map"></div>
+        <p class="map-hint muted">Click anywhere on the map to get the weather there. Use the layer button (top right) to switch base maps or turn on rain radar.</p>
+      </section>
+
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+
+      <section id="result" class="result" hidden aria-live="polite">
+        <article class="card now">
+          <div class="now-main">
+            <div>
+              <h2 id="place"></h2>
+              <p id="place-meta" class="muted"></p>
+              <p id="condition" class="condition"></p>
+            </div>
+            <div class="now-temp">
+              <span id="icon" class="now-icon" aria-hidden="true"></span>
+              <span id="temp" class="temp-big"></span>
+            </div>
+          </div>
+          <p id="summary" class="muted"></p>
+        </article>
+
+        <div class="stats" id="stats"></div>
+
+        <article class="card">
+          <h3>Next 24 hours</h3>
+          <div class="hourly-scroll">
+            <div id="hourly" class="hourly"></div>
+          </div>
+        </article>
+
+        <article class="card">
+          <h3>7-day forecast</h3>
+          <ol id="daily" class="daily"></ol>
+        </article>
+      </section>
+
+      <section id="skeleton" class="result skeleton" hidden aria-hidden="true">
+        <div class="card sk-block"></div>
+        <div class="stats"><div class="sk-stat"></div><div class="sk-stat"></div><div class="sk-stat"></div><div class="sk-stat"></div></div>
+        <div class="card sk-block tall"></div>
+      </section>
+    </main>
+
+    {{> footer }}
   </div>
-  
-  {{> footer }}
-  
+
+  <div class="easter-egg" aria-hidden="true">
+    <img class="hole" src="/img/hole.png" alt="">
+    <img class="stand" src="/img/stand.png" alt="">
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="/js/format.js"></script>
+  <script src="/js/map.js"></script>
   <script src="/js/app.js"></script>
-  </div>
 </body>
-
 </html>

@@ -1,21 +1,32 @@
 <!DOCTYPE html>
-
-<html>
-
+<html lang="en">
 <head>
-  <title>{{title}}</title>
-  <link rel= "icon" href="../img/weather_icon.png"> </link>
-  <link rel="stylesheet" href="/css/style.css">
+  {{> head }}
 </head>
 <body>
-  <div class="body">
-     <div class="main-content">
-      {{> header }}
-  <p>{{helptext}}</p>
-  <img class="coding" src="../img/coding.jpg"></img>
-  </div>
-  {{> footer }}
+  <div class="page">
+    {{> header }}
+    <main class="main-content prose">
+      <h1>Help</h1>
+      <img class="coding" src="/img/coding.jpg" alt="" width="320">
+      <h2>Searching</h2>
+      <ul>
+        <li>Type a city name, e.g. <code>Taipei</code> or <code>Kyoto</code>.</li>
+        <li>Add a region or country after a comma to pick the right one: <code>Paris, Texas</code> or <code>Paris, France</code>.</li>
+        <li>Click <strong>📍 My location</strong> to use your browser's location. Your browser will ask for permission first.</li>
+        <li><strong>Click anywhere on the map</strong> to get the weather for that exact point.</li>
+        <li>Recent searches appear as chips under the search box. Click one to search it again.</li>
+      </ul>
+      <h2>Map layers</h2>
+      <p>Use the layer button in the top-right corner of the map to switch the base map (Streets, Light or Satellite) and to turn the <em>City temperatures</em> and <em>Rain radar</em> overlays on or off.</p>
+      <h2>Units</h2>
+      <p>Use the °C / °F toggle to switch units. The app remembers your choice on this device.</p>
+      <h2>Using the API</h2>
+      <p><code>GET /api/weather?address=Tokyo</code> or <code>GET /api/weather?lat=25.03&amp;lon=121.56</code></p>
+      <p><code>GET /api/cities</code> returns a GeoJSON FeatureCollection of Taiwanese cities with their current temperature.</p>
+      <p>Errors come back with a proper HTTP status (400, 404, 502 or 504) and an <code>{"error": "..."}</code> body.</p>
+    </main>
+    {{> footer }}
   </div>
 </body>
-
 </html>
