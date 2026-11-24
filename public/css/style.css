@@ -9,7 +9,7 @@
   --error: #ffb4b4;
   --radius: 18px;
   --bg: linear-gradient(160deg, #000046 0%, #1cb5e0 100%);
-  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", sans-serif;
+  --font: system-ui, -apple-system, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", "Segoe UI", Roboto, sans-serif;
 }
 
 /* Background follows the weather that was searched */
@@ -54,13 +54,14 @@ code {
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
 .page {
-  max-width: 760px;
+  max-width: 1240px;
   margin: 0 auto;
   padding: 0 16px;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
 }
+.page.narrow { max-width: 760px; }
 .main-content { flex-grow: 1; }
 .center { text-align: center; }
 .muted { color: var(--muted); margin: 0; }
@@ -108,7 +109,7 @@ code {
 }
 
 /* ---------- Search ---------- */
-.search-panel h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); margin: 0 0 16px; line-height: 1.2; }
+.search-panel h1 { font-size: clamp(1.8rem, 4vw, 2.4rem); margin: 0 0 16px; line-height: 1.2; }
 
 .search-form { display: flex; gap: 8px; }
 
@@ -168,7 +169,24 @@ button.ghost {
 
 /* ---------- Result ---------- */
 .result { display: grid; gap: 14px; animation: rise 0.35s ease; }
-.result > *, .card { min-width: 0; } /* let wide children (the hourly chart) scroll instead of stretching the grid */
+.result > *, .card { min-width: 0; }
+
+/* Wide screens: current conditions + stats on the left, week on the right, hourly underneath */
+@media (min-width: 1000px) {
+  .result:not(.skeleton) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      "now    daily"
+      "stats  daily"
+      "hourly hourly";
+    grid-template-rows: auto 1fr auto;
+    align-items: start;
+  }
+  .result .now { grid-area: now; }
+  .result .stats { grid-area: stats; }
+  .result .daily-card { grid-area: daily; }
+  .result .hourly-card { grid-area: hourly; }
+} /* let wide children (the hourly chart) scroll instead of stretching the grid */
 .result[hidden] { display: none; }
 @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
@@ -249,12 +267,38 @@ button.ghost {
 
 /* ---------- Map ---------- */
 .map-card { padding: 0; overflow: hidden; margin-top: 18px; }
-.map { height: 360px; width: 100%; background: #dfe6ee; cursor: crosshair; }
-.map-hint { font-size: 0.82rem; padding: 8px 14px; }
+.map { height: clamp(460px, 68vh, 820px); width: 100%; background: #0b1d4d; cursor: crosshair; }
+.map-hint { font-size: 0.9rem; padding: 10px 16px; }
+
+/* Bigger controls: easier to read and click during a demo */
+.leaflet-control-layers { font-size: 15px; line-height: 1.8; }
+.leaflet-control-layers-expanded { padding: 8px 14px 8px 10px; }
+.leaflet-bar a { width: 38px !important; height: 38px !important; line-height: 38px !important; font-size: 20px !important; }
+.leaflet-control-scale-line { font-size: 12px; }
+.fullscreen-button { font-size: 22px !important; color: #222 !important; text-decoration: none; }
+
+/* Full-screen map */
+.map-card:fullscreen { border-radius: 0; background: #0b1d4d; display: flex; flex-direction: column; }
+.map-card:fullscreen .map { height: auto; flex: 1; }
 .leaflet-container { font-family: var(--font); }
 .leaflet-container a { color: #0078a8; }
-.map-popup { color: #1a1a2e; display: grid; gap: 2px; }
-.map-popup small { color: #666; }
+.leaflet-popup-content { margin: 14px 16px; font-size: 14px; }
+.map-popup { color: #1a1a2e; display: grid; gap: 4px; }
+.popup-title { font-size: 16px; line-height: 1.3; }
+.popup-now { display: flex; align-items: center; gap: 8px; margin: 2px 0 6px; }
+.popup-icon { font-size: 30px; }
+.popup-temp { font-size: 30px; font-weight: 300; }
+.popup-cond { font-size: 15px; color: #444; }
+.popup-row { display: flex; justify-content: space-between; gap: 16px; border-top: 1px solid #eee; padding-top: 4px; }
+.popup-row span { color: #666; }
+.popup-coord { color: #888; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.popup-more {
+  margin-top: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+  color: #fff;
+  border-radius: 8px;
+}
 .city-pin-wrap { background: none; border: none; }
 .city-pin {
   display: inline-block;
@@ -262,9 +306,9 @@ button.ghost {
   white-space: nowrap;
   background: rgba(11, 29, 77, 0.85);
   color: #fff;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  padding: 2px 8px;
+  padding: 3px 9px;
   border-radius: 999px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
@@ -298,7 +342,11 @@ button.ghost {
   .day { grid-template-columns: 48px 28px 44px 36px 1fr 36px; gap: 6px; font-size: 0.92rem; }
   .easter-egg { display: none; }
   .now-icon { font-size: 2.4rem; }
-  .map { height: 280px; }
+  .map { height: 60vh; min-height: 340px; }
+}
+
+@media (max-width: 1640px) {
+  .easter-egg { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

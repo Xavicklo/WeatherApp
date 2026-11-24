@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
   {{> head }}
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
@@ -10,25 +10,25 @@
 
     <main class="main-content">
       <section class="search-panel" aria-labelledby="search-title">
-        <h1 id="search-title">What's the weather like?</h1>
+        <h1 id="search-title">今天天氣如何？</h1>
         <form id="search-form" class="search-form" role="search" autocomplete="off">
-          <label for="search-input" class="visually-hidden">City or place</label>
-          <input id="search-input" name="address" type="search" placeholder="Search a city, e.g. Taipei or Paris, France" maxlength="100" required>
-          <button type="submit" id="search-button">Search</button>
+          <label for="search-input" class="visually-hidden">城市或地點</label>
+          <input id="search-input" name="address" type="search" placeholder="搜尋城市，例如 Taipei 或 Paris, France；也可以直接點地圖" maxlength="100" required>
+          <button type="submit" id="search-button">搜尋</button>
         </form>
         <div class="toolbar">
-          <button type="button" id="locate-button" class="ghost">📍 My location</button>
-          <div class="unit-toggle" role="group" aria-label="Temperature unit">
+          <button type="button" id="locate-button" class="ghost">📍 我的位置</button>
+          <div class="unit-toggle" role="group" aria-label="溫度單位">
             <button type="button" data-unit="C" aria-pressed="true">°C</button>
             <button type="button" data-unit="F" aria-pressed="false">°F</button>
           </div>
         </div>
-        <ul id="recent" class="recent" aria-label="Recent searches"></ul>
+        <ul id="recent" class="recent" aria-label="最近搜尋"></ul>
       </section>
 
-      <section class="card map-card" aria-label="Map">
+      <section class="card map-card" aria-label="地圖">
         <div id="map" class="map"></div>
-        <p class="map-hint muted">Click anywhere on the map to get the weather there. Use the layer button (top right) to switch base maps or turn on rain radar.</p>
+        <p class="map-hint muted">點地圖上任一點即可查詢該位置的天氣。右上角可以切換底圖和圖層，左上角 ⛶ 可以切換全螢幕。</p>
       </section>
 
       <p id="status" class="status" role="status" aria-live="polite"></p>
@@ -51,15 +51,15 @@
 
         <div class="stats" id="stats"></div>
 
-        <article class="card">
-          <h3>Next 24 hours</h3>
+        <article class="card hourly-card">
+          <h3>未來 24 小時</h3>
           <div class="hourly-scroll">
             <div id="hourly" class="hourly"></div>
           </div>
         </article>
 
-        <article class="card">
-          <h3>7-day forecast</h3>
+        <article class="card daily-card">
+          <h3>一週預報</h3>
           <ol id="daily" class="daily"></ol>
         </article>
       </section>

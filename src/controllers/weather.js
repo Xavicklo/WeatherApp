@@ -18,13 +18,13 @@ function createWeatherController({ geocode, forecast, reverseGeocode, logger = c
     const hasCoords = lat !== null || lon !== null;
 
     if (!address && !hasCoords) {
-      return { status: 400, body: { error: "Please provide a location to search." } };
+      return { status: 400, body: { error: "請輸入要查詢的地點。" } };
     }
     if (address.length > MAX_ADDRESS_LENGTH) {
-      return { status: 400, body: { error: `Location must be under ${MAX_ADDRESS_LENGTH} characters.` } };
+      return { status: 400, body: { error: `地點名稱請在 ${MAX_ADDRESS_LENGTH} 個字以內。` } };
     }
     if (hasCoords && (lat === null || lon === null || Number.isNaN(lat) || Number.isNaN(lon))) {
-      return { status: 400, body: { error: "lat and lon must be valid coordinates." } };
+      return { status: 400, body: { error: "lat 和 lon 必須是有效的座標。" } };
     }
 
     try {
@@ -32,7 +32,7 @@ function createWeatherController({ geocode, forecast, reverseGeocode, logger = c
       let weather;
       if (hasCoords) {
         // Name lookup and forecast don't depend on each other, so run them in parallel.
-        const fallback = { location: "Selected location", country: null, region: null };
+        const fallback = { location: "地圖選取位置", country: null, region: null };
         const [name, wx] = await Promise.all([
           reverseGeocode ? reverseGeocode(lat, lon) : fallback,
           forecast(lat, lon),
@@ -58,7 +58,7 @@ function createWeatherController({ geocode, forecast, reverseGeocode, logger = c
     } catch (err) {
       const status = err.status && err.status >= 400 && err.status < 600 ? err.status : 500;
       if (status >= 500) logger.error("[weather]", err.message, err.cause ? `(${err.cause.message})` : "");
-      const message = status === 500 && !err.status ? "Something went wrong. Please try again." : err.message;
+      const message = status === 500 && !err.status ? "發生錯誤，請稍後再試。" : err.message;
       return { status, body: { error: message } };
     }
   };

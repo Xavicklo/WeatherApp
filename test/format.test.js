@@ -10,10 +10,10 @@ test("temperature conversion and formatting", () => {
 });
 
 test("compass directions", () => {
-  assert.equal(F.compass(0), "N");
-  assert.equal(F.compass(45), "NE");
-  assert.equal(F.compass(359), "N");
-  assert.equal(F.compass(-90), "W");
+  assert.equal(F.compass(0), "北風");
+  assert.equal(F.compass(45), "東北風");
+  assert.equal(F.compass(359), "北風");
+  assert.equal(F.compass(-90), "西風");
 });
 
 test("coordinates use hemisphere letters, not negative numbers", () => {
@@ -23,8 +23,8 @@ test("coordinates use hemisphere letters, not negative numbers", () => {
 
 test("hour and day labels", () => {
   assert.equal(F.formatHour("2026-11-24T07:00"), "07:00");
-  assert.equal(F.formatDay("2026-11-24", 0), "Today");
-  assert.equal(F.formatDay("2026-11-24", 1), "Tue");
+  assert.equal(F.formatDay("2026-11-24", 0), "今天");
+  assert.equal(F.formatDay("2026-11-24", 1), "週二");
 });
 
 test("rangeBar stays within 0–100%", () => {

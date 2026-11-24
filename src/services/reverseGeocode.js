@@ -16,7 +16,7 @@ function formatAddress(body) {
   return parts.length ? parts.join(", ") : null;
 }
 
-function createReverseGeocoder({ fetchImpl, cache, language = "en" } = {}) {
+function createReverseGeocoder({ fetchImpl, cache, language = "zh-TW" } = {}) {
   return async function reverseGeocode(latitude, longitude) {
     const lat = Number(latitude).toFixed(3);
     const lon = Number(longitude).toFixed(3);
@@ -34,13 +34,13 @@ function createReverseGeocoder({ fetchImpl, cache, language = "en" } = {}) {
       });
       const a = body.address || {};
       place = {
-        location: formatAddress(body) || "Selected location",
+        location: formatAddress(body) || "地圖選取位置",
         country: a.country || null,
         region: a.state || null,
       };
     } catch (err) {
       // Rate limit or outage: still show the weather, and don't cache the fallback.
-      return { location: "Selected location", country: null, region: null };
+      return { location: "地圖選取位置", country: null, region: null };
     }
 
     if (cache) cache.set(cacheKey, place);

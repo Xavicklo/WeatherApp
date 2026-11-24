@@ -44,7 +44,7 @@ test("coordinates skip geocoding", async () => {
   const res = await controller({ geocode: async () => (geocoded = true) })({ lat: "25.03", lon: "121.56" });
   assert.equal(res.status, 200);
   assert.equal(geocoded, false);
-  assert.equal(res.body.location, "Selected location");
+  assert.equal(res.body.location, "地圖選取位置");
   assert.deepEqual(res.body.point, { latitude: 25.03, longitude: 121.56 });
 });
 

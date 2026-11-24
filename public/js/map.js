@@ -12,24 +12,58 @@
 
   function createBaseLayers() {
     return {
-      Streets: L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      街道圖: L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }),
-      Light: L.tileLayer(
+      淺色底圖: L.tileLayer(
         "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
         { maxZoom: 16, attribution: "Tiles &copy; Esri &mdash; Esri, HERE, Garmin, &copy; OpenStreetMap contributors" }
       ),
-      Topo: L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
+      地形圖: L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
         maxZoom: 17,
         attribution: 'Map data &copy; OpenStreetMap contributors, SRTM | Style &copy; <a href="https://opentopomap.org">OpenTopoMap</a>',
       }),
-      Satellite: L.tileLayer(
+      衛星影像: L.tileLayer(
         "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-        { maxZoom: 18, attribution: "Tiles &copy; Esri" }
+        { maxZoom: 18, attribution: "Imagery &copy; Esri, Maxar, Earthstar Geographics" }
       ),
     };
   }
+
+  /** Place names and boundaries drawn on top of the imagery (a "hybrid" satellite map). */
+  function createLabelsLayer() {
+    return L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+      { maxZoom: 18, pane: "overlayPane", attribution: "Labels &copy; Esri" }
+    );
+  }
+
+  /** A map button that toggles browser full screen, handy for demos. */
+  const FullscreenControl = L.Control.extend({
+    options: { position: "topleft" },
+    onAdd(map) {
+      const container = L.DomUtil.create("div", "leaflet-bar leaflet-control");
+      const button = L.DomUtil.create("a", "fullscreen-button", container);
+      button.href = "#";
+      button.title = "全螢幕";
+      button.setAttribute("role", "button");
+      button.setAttribute("aria-label", "全螢幕");
+      button.textContent = "⛶";
+      L.DomEvent.disableClickPropagation(container);
+      L.DomEvent.on(button, "click", (e) => {
+        L.DomEvent.preventDefault(e);
+        const target = map.getContainer().closest(".map-card") || map.getContainer();
+        if (document.fullscreenElement) document.exitFullscreen();
+        else if (target.requestFullscreen) target.requestFullscreen();
+      });
+      document.addEventListener("fullscreenchange", () => {
+        button.title = document.fullscreenElement ? "離開全螢幕" : "全螢幕";
+        setTimeout(() => map.invalidateSize(), 100);
+      });
+      return container;
+    },
+  });
 
   /** City temperatures (GeoJSON from /api/cities) drawn as labelled points. */
   function createCityLayer(getUnit) {
@@ -56,7 +90,7 @@
   function cityIcon(props, unit) {
     const span = document.createElement("span");
     span.className = "city-pin";
-    span.textContent = `${props.icon} ${WeatherFormat.formatTemp(props.temperature, unit)}`;
+    span.textContent = `${props.name} ${props.icon} ${WeatherFormat.formatTemp(props.temperature, unit)}`;
     return L.divIcon({ className: "city-pin-wrap", html: span.outerHTML, iconSize: null });
   }
 
@@ -99,7 +133,8 @@
   function init(containerId, { onPick, getUnit }) {
     const map = L.map(containerId, { zoomControl: true, worldCopyJump: true }).setView(TAIWAN, 7);
     const bases = createBaseLayers();
-    bases.Streets.addTo(map);
+    bases.衛星影像.addTo(map); // satellite by default: closest to remote-sensing imagery
+    const labels = createLabelsLayer().addTo(map);
 
     const cities = createCityLayer(getUnit).addTo(map);
     const refreshLabels = () => applyMinZoom(map, cities);
@@ -107,7 +142,10 @@
     cities.on("layeradd", refreshLabels);
     map.on("overlayadd", refreshLabels);
     const radar = createRadarLayer();
-    L.control.layers(bases, { "City temperatures": cities, "Rain radar": radar }, { collapsed: true }).addTo(map);
+    L.control
+      .layers(bases, { 地名與行政界線: labels, 城市即時氣溫: cities, 雷達回波: radar }, { collapsed: window.innerWidth < 900 })
+      .addTo(map);
+    new FullscreenControl().addTo(map);
     L.control.scale({ imperial: false }).addTo(map);
 
     let marker = null;
@@ -122,7 +160,7 @@
         const latlng = [lat, lon];
         if (!marker) marker = L.marker(latlng).addTo(map);
         else marker.setLatLng(latlng);
-        marker.bindPopup(content).openPopup();
+        marker.bindPopup(content, { maxWidth: 320, minWidth: 240 }).openPopup();
         map.flyTo(latlng, Math.max(map.getZoom(), 9), { duration: 0.8 });
       },
       refreshUnits() {

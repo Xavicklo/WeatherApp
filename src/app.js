@@ -55,9 +55,9 @@ function createApp(deps = {}) {
   });
 
   // Pages
-  app.get("/", (req, res) => res.render("index", { title: "Weather" }));
-  app.get("/about", (req, res) => res.render("about", { title: "About" }));
-  app.get("/help", (req, res) => res.render("help", { title: "Help" }));
+  app.get("/", (req, res) => res.render("index", { title: "天氣查詢" }));
+  app.get("/about", (req, res) => res.render("about", { title: "關於" }));
+  app.get("/help", (req, res) => res.render("help", { title: "使用說明" }));
 
   // API
   const weatherRoute = async (req, res) => {
@@ -72,18 +72,18 @@ function createApp(deps = {}) {
     try {
       res.type("application/geo+json").send(JSON.stringify(await cityLayer()));
     } catch (err) {
-      res.status(err.status || 500).json({ error: "City layer is unavailable right now." });
+      res.status(err.status || 500).json({ error: "城市溫度圖層暫時無法使用。" });
     }
   });
 
   app.get("/healthz", (req, res) => res.json({ status: "ok", uptime: Math.round(process.uptime()) }));
 
   // 404s: JSON for the API, a page for everything else
-  app.use("/api", (req, res) => res.status(404).json({ error: "Not found" }));
+  app.use("/api", (req, res) => res.status(404).json({ error: "找不到這個 API。" }));
   app.use((req, res) => {
     res.status(404).render("404", {
       title: "404",
-      errorMessage: req.path.startsWith("/help/") ? "Help article not found." : "Page not found.",
+      errorMessage: req.path.startsWith("/help/") ? "找不到這篇說明。" : "找不到這個頁面。",
     });
   });
 
@@ -91,7 +91,7 @@ function createApp(deps = {}) {
   // eslint-disable-next-line no-unused-vars
   app.use((err, req, res, next) => {
     console.error(err);
-    res.status(500).json({ error: "Something went wrong." });
+    res.status(500).json({ error: "發生錯誤，請稍後再試。" });
   });
 
   return app;

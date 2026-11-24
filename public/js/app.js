@@ -89,12 +89,12 @@
     state.controller = controller;
 
     setLoading(true);
-    setStatus(`Loading weather for ${label}…`);
+    setStatus(`正在查詢 ${label} 的天氣…`);
 
     try {
       const res = await fetch("/api/weather?" + new URLSearchParams(params), { signal: controller.signal });
-      const data = await res.json().catch(() => ({ error: "Unexpected response from server." }));
-      if (!res.ok || data.error) throw new Error(data.error || `Request failed (${res.status})`);
+      const data = await res.json().catch(() => ({ error: "伺服器回傳了無法辨識的資料。" }));
+      if (!res.ok || data.error) throw new Error(data.error || `查詢失敗（${res.status}）`);
 
       state.data = data;
       render();
@@ -107,7 +107,7 @@
     } catch (err) {
       if (err.name === "AbortError") return;
       els.result.hidden = true;
-      setStatus(err.message || "Something went wrong.", "error");
+      setStatus(err.message || "發生錯誤，請稍後再試。", "error");
     } finally {
       if (state.controller === controller) {
         state.controller = null;
@@ -121,7 +121,7 @@
     const query = address.trim();
     if (!query) return;
     els.input.value = query;
-    load({ address: query }, `"${query}"`);
+    load({ address: query }, `「${query}」`);
   }
 
   function updateUrl(query) {
@@ -148,12 +148,12 @@
 
   // ---------- rendering ----------
   function applyTheme(current) {
-    const code = current.text.toLowerCase();
+    const text = current.text;
     let theme = current.isDay ? "day" : "night";
-    if (/thunder/.test(code)) theme = "storm";
-    else if (/rain|drizzle|shower/.test(code)) theme = "rain";
-    else if (/snow/.test(code)) theme = "snow";
-    else if (/overcast|fog|cloudy/.test(code) && current.isDay) theme = "cloudy";
+    if (/雷/.test(text)) theme = "storm";
+    else if (/雨/.test(text)) theme = "rain";
+    else if (/雪/.test(text)) theme = "snow";
+    else if (/陰|霧|多雲/.test(text) && current.isDay) theme = "cloudy";
     document.body.dataset.theme = theme;
   }
 
@@ -173,26 +173,26 @@
     const today = d.daily[0];
 
     applyTheme(c);
-    document.title = `${F.formatTemp(c.temperature, u)} ${d.location} · Weather`;
+    document.title = `${F.formatTemp(c.temperature, u)} ${d.location} · 天氣查詢`;
 
     els.place.textContent = d.location;
-    els.placeMeta.textContent = `${F.formatCoord(d.latitude, d.longitude)} · Local time ${c.time.replace("T", " ")}`;
+    els.placeMeta.textContent = `${F.formatCoord(d.latitude, d.longitude)} · 當地時間 ${c.time.replace("T", " ")}`;
     els.condition.textContent = c.text;
     els.icon.textContent = c.icon;
     els.temp.textContent = F.formatTemp(c.temperature, u);
     els.summary.textContent = today
-      ? `Feels like ${F.formatTemp(c.feelsLike, u)} · High ${F.formatTemp(today.max, u)} · Low ${F.formatTemp(today.min, u)}`
-      : `Feels like ${F.formatTemp(c.feelsLike, u)}`;
+      ? `體感 ${F.formatTemp(c.feelsLike, u)} · 最高 ${F.formatTemp(today.max, u)} · 最低 ${F.formatTemp(today.min, u)}`
+      : `體感 ${F.formatTemp(c.feelsLike, u)}`;
 
     els.stats.replaceChildren(
-      stat("Humidity", `${c.humidity}%`),
-      stat("Chance of rain", today ? `${today.precipitationProbability ?? 0}%` : "–"),
-      stat("Wind", `${Math.round(c.windSpeed)} km/h`, F.compass(c.windDirection)),
-      stat("UV index", c.uvIndex == null ? "–" : String(c.uvIndex), F.uvLabel(c.uvIndex)),
-      stat("Visibility", c.visibility == null ? "–" : `${c.visibility} km`),
-      stat("Pressure", `${c.pressure} hPa`),
-      stat("Sunrise", today ? F.formatHour(today.sunrise) : "–"),
-      stat("Sunset", today ? F.formatHour(today.sunset) : "–")
+      stat("相對濕度", `${c.humidity}%`),
+      stat("降雨機率", today ? `${today.precipitationProbability ?? 0}%` : "–"),
+      stat("風速", `${Math.round(c.windSpeed)} km/h`, F.compass(c.windDirection)),
+      stat("紫外線指數", c.uvIndex == null ? "–" : String(c.uvIndex), F.uvLabel(c.uvIndex)),
+      stat("能見度", c.visibility == null ? "–" : `${c.visibility} km`),
+      stat("氣壓", `${c.pressure} hPa`),
+      stat("日出", today ? F.formatHour(today.sunrise) : "–"),
+      stat("日落", today ? F.formatHour(today.sunset) : "–")
     );
 
     renderHourly(d.hourly, u);
@@ -215,7 +215,7 @@
     svg.setAttribute("role", "img");
     svg.setAttribute(
       "aria-label",
-      `Temperature over the next 24 hours, from ${F.formatTemp(hours[0].temperature, unit)} to ${F.formatTemp(
+      `未來 24 小時氣溫，從 ${F.formatTemp(hours[0].temperature, unit)} 到 ${F.formatTemp(
         hours[hours.length - 1].temperature,
         unit
       )}`
@@ -254,7 +254,7 @@
         el("div", { class: "hour", style: { width: `${colWidth}px` } }, [
           el("span", { class: "hour-icon", text: h.icon, title: h.text }),
           el("span", { class: "hour-rain", text: h.precipitationProbability ? `💧${h.precipitationProbability}%` : "" }),
-          el("span", { class: "hour-time", text: i === 0 ? "Now" : F.formatHour(h.time) }),
+          el("span", { class: "hour-time", text: i === 0 ? "現在" : F.formatHour(h.time) }),
         ])
       )
     );
@@ -301,10 +301,26 @@
   function showOnMap(data) {
     if (!map || !data.point) return;
     // Build the popup with DOM nodes, not an HTML string: place names come from a third party.
+    const c = data.current;
+    const today = data.daily[0] || {};
+    const u = state.unit;
+    const row = (label, value) => el("div", { class: "popup-row" }, [el("span", { text: label }), el("b", { text: value })]);
+    const more = el("button", { type: "button", class: "popup-more", text: "查看完整預報 ↓" });
+    more.addEventListener("click", () => els.result.scrollIntoView({ behavior: "smooth", block: "start" }));
     const popup = el("div", { class: "map-popup" }, [
-      el("strong", { text: data.location }),
-      el("div", { text: `${data.current.icon} ${F.formatTemp(data.current.temperature, state.unit)} · ${data.current.text}` }),
-      el("small", { text: F.formatCoord(data.point.latitude, data.point.longitude) }),
+      el("strong", { class: "popup-title", text: data.location }),
+      el("div", { class: "popup-now" }, [
+        el("span", { class: "popup-icon", text: c.icon }),
+        el("span", { class: "popup-temp", text: F.formatTemp(c.temperature, u) }),
+        el("span", { class: "popup-cond", text: c.text }),
+      ]),
+      row("體感溫度", F.formatTemp(c.feelsLike, u)),
+      row("今日高低溫", `${F.formatTemp(today.max, u)} / ${F.formatTemp(today.min, u)}`),
+      row("降雨機率", `${today.precipitationProbability ?? 0}%`),
+      row("相對濕度", `${c.humidity}%`),
+      row("風速", `${Math.round(c.windSpeed)} km/h ${F.compass(c.windDirection)}`),
+      el("small", { class: "popup-coord", text: `WGS84：${F.formatCoord(data.point.latitude, data.point.longitude)}` }),
+      more,
     ]);
     try {
       map.show(data.point.latitude, data.point.longitude, popup);
@@ -336,18 +352,18 @@
 
   els.locateBtn.addEventListener("click", () => {
     if (!("geolocation" in navigator)) {
-      setStatus("Your browser doesn't support location.", "error");
+      setStatus("你的瀏覽器不支援定位功能。", "error");
       return;
     }
-    setStatus("Finding your location…");
+    setStatus("正在取得你的位置…");
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
-        load({ lat: latitude.toFixed(4), lon: longitude.toFixed(4) }, "your location");
+        load({ lat: latitude.toFixed(4), lon: longitude.toFixed(4) }, "你的位置");
       },
       (err) => {
         setStatus(
-          err.code === err.PERMISSION_DENIED ? "Location permission was denied." : "Couldn't get your location.",
+          err.code === err.PERMISSION_DENIED ? "你拒絕了定位權限。" : "無法取得你的位置。",
           "error"
         );
       },

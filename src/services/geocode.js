@@ -42,7 +42,7 @@ function createGeocoder({ fetchImpl, cache, language = "en" } = {}) {
   return async function geocode(address) {
     const { name, hints } = parseQuery(address);
     if (name.length < 2) {
-      throw new NotFoundError("Please enter at least 2 characters.");
+      throw new NotFoundError("請至少輸入 2 個字。");
     }
 
     const cacheKey = `geo:${language}:${name.toLowerCase()}|${hints.join("|")}`;
@@ -53,7 +53,7 @@ function createGeocoder({ fetchImpl, cache, language = "en" } = {}) {
     const body = await getJson(url, { fetchImpl });
 
     if (!body.results || body.results.length === 0) {
-      throw new NotFoundError(`Couldn't find "${address}". Try another place name.`);
+      throw new NotFoundError(`找不到「${address}」，請換個地名試試（英文地名較準確，例如 Taipei）。`);
     }
 
     const best = pickBest(body.results, hints);

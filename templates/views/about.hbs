@@ -1,23 +1,23 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
   {{> head }}
 </head>
 <body>
-  <div class="page">
+  <div class="page narrow">
     {{> header }}
     <main class="main-content prose">
-      <h1>About</h1>
-      <img class="portrait" src="/img/me.jpeg" alt="Portrait of {{name}}" width="220">
-      <p>Hi, I'm {{name}}. I built this app to practise building a full-stack Node.js project end to end, from server-side rendering to talking to third-party APIs.</p>
-      <h2>How it works</h2>
+      <h1>關於</h1>
+      <img class="portrait" src="/img/me.jpeg" alt="{{name}} 的照片" width="220">
+      <p>嗨，我是 {{name}}。這是我練習從零做出完整 Node.js 全端專案的作品，涵蓋伺服器端渲染、串接第三方 API，以及 Web GIS 地圖。</p>
+      <h2>技術架構</h2>
       <ul>
-        <li><strong>Server:</strong> Node.js + Express, with Handlebars templates rendered on the server.</li>
-        <li><strong>API:</strong> <code>GET /api/weather?address=Taipei</code> geocodes the place, fetches the forecast and returns clean JSON.</li>
-        <li><strong>Data:</strong> <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> for geocoding and forecasts. No API key, so there are no secrets in the repo.</li>
-        <li><strong>Performance:</strong> responses are cached in memory for 10 minutes, and upstream calls time out after 8 seconds.</li>
-        <li><strong>Map (Web GIS):</strong> <a href="https://leafletjs.com/" target="_blank" rel="noopener">Leaflet</a>, with OpenStreetMap, OpenTopoMap and Esri base layers, a GeoJSON layer of Taiwanese city temperatures (<code>/api/cities</code>) and a RainViewer rain-radar overlay. Click the map to reverse-geocode that point with OpenStreetMap Nominatim.</li>
-        <li><strong>Front end:</strong> plain JavaScript, with no framework or build step. Responsive layout, and the 24-hour chart is hand-drawn SVG.</li>
+        <li><strong>後端：</strong>Node.js + Express，以 Handlebars 在伺服器端渲染頁面。</li>
+        <li><strong>API：</strong><code>GET /api/weather?address=Taipei</code> 會先做地理編碼，再取得天氣預報，最後回傳整理好的 JSON。</li>
+        <li><strong>資料來源：</strong><a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> 提供地理編碼與預報。它不需要 API 金鑰，所以 repo 裡沒有任何機密。</li>
+        <li><strong>地圖（Web GIS）：</strong>使用 <a href="https://leafletjs.com/" target="_blank" rel="noopener">Leaflet</a>，預設底圖為 Esri 衛星影像，另外疊加地名與行政界線圖層、台灣城市即時氣溫的 GeoJSON 圖層（<code>/api/cities</code>），以及 RainViewer 雷達回波。點擊地圖時，會用 OpenStreetMap Nominatim 做反向地理編碼。</li>
+        <li><strong>效能：</strong>回應會在記憶體快取 10 分鐘，對外 API 請求超過 8 秒就判定逾時。</li>
+        <li><strong>前端：</strong>原生 JavaScript，不用框架也不需要建置。版面支援手機，24 小時溫度圖是手寫的 SVG。</li>
       </ul>
     </main>
     {{> footer }}

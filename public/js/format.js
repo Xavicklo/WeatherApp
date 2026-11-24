@@ -7,8 +7,8 @@
   if (typeof module === "object" && module.exports) module.exports = factory();
   else root.WeatherFormat = factory();
 })(typeof self !== "undefined" ? self : this, function () {
-  const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const COMPASS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+  const WEEKDAYS = ["週日", "週一", "週二", "週三", "週四", "週五", "週六"];
+  const COMPASS = ["北風", "東北風", "東風", "東南風", "南風", "西南風", "西風", "西北風"];
 
   function toUnit(celsius, unit) {
     if (celsius == null) return null;
@@ -36,9 +36,9 @@
     return String(isoLocal).slice(11, 16);
   }
 
-  /** "2026-11-24" -> "Today" / "Tue" (weekday computed in UTC so the browser's zone can't shift it) */
+  /** "2026-11-24" -> "今天" / "週二" (weekday computed in UTC so the browser's zone can't shift it) */
   function formatDay(isoDate, index) {
-    if (index === 0) return "Today";
+    if (index === 0) return "今天";
     const [y, m, d] = String(isoDate).split("-").map(Number);
     return WEEKDAYS[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
   }
@@ -74,11 +74,11 @@
 
   function uvLabel(uv) {
     if (uv == null) return "";
-    if (uv < 3) return "Low";
-    if (uv < 6) return "Moderate";
-    if (uv < 8) return "High";
-    if (uv < 11) return "Very high";
-    return "Extreme";
+    if (uv < 3) return "低量級";
+    if (uv < 6) return "中量級";
+    if (uv < 8) return "高量級";
+    if (uv < 11) return "過量級";
+    return "危險級";
   }
 
   return { toUnit, formatTemp, compass, formatCoord, formatHour, formatDay, rangeBar, chartPoints, linePath, uvLabel };

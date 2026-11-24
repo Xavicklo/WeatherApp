@@ -26,9 +26,9 @@ test("TTLCache expires entries and evicts the oldest", () => {
 });
 
 test("wmo codes map to text and a day/night icon", () => {
-  assert.deepEqual(wmo(0, true), { text: "Clear sky", icon: "☀️" });
-  assert.deepEqual(wmo(0, false), { text: "Clear sky", icon: "🌙" });
-  assert.equal(wmo(999).text, "Unknown");
+  assert.deepEqual(wmo(0, true), { text: "晴朗", icon: "☀️" });
+  assert.deepEqual(wmo(0, false), { text: "晴朗", icon: "🌙" });
+  assert.equal(wmo(999).text, "未知");
 });
 
 test("parseQuery splits a place from its region hints", () => {
@@ -68,13 +68,13 @@ test("normalize reshapes Open-Meteo data for the UI", () => {
   const data = normalize(forecastBody);
   assert.equal(data.current.temperature, 21.4);
   assert.equal(data.current.isDay, false);
-  assert.equal(data.current.text, "Overcast");
+  assert.equal(data.current.text, "陰天");
   assert.equal(data.current.visibility, 24.1);
   assert.equal(data.current.uvIndex, 4.4);
   assert.equal(data.hourly.length, 24);
   assert.equal(data.hourly[0].time, "2026-11-24T19:00");
   assert.equal(data.daily.length, 7);
-  assert.equal(data.daily[2].text, "Rain");
+  assert.equal(data.daily[2].text, "中雨");
 });
 
 test("forecaster caches by rounded coordinates", async () => {
@@ -105,7 +105,7 @@ test("reverse geocoder formats Nominatim addresses and falls back on errors", as
   assert.equal((await ok(25.0, 121.5)).location, "Zhonghe, New Taipei, Taiwan");
 
   const down = createReverseGeocoder({ fetchImpl: fakeFetch({ [NOM]: new Error("ECONNRESET") }) });
-  assert.equal((await down(25.0, 121.5)).location, "Selected location");
+  assert.equal((await down(25.0, 121.5)).location, "地圖選取位置");
 });
 
 test("city layer is valid GeoJSON built from one multi-location request", async () => {
@@ -115,7 +115,7 @@ test("city layer is valid GeoJSON built from one multi-location request", async 
   assert.equal(fetchImpl.calls.length, 1);
   assert.equal(layer.type, "FeatureCollection");
   assert.equal(layer.features.length, CITIES.length);
-  const taipei = layer.features.find((f) => f.properties.name === "Taipei");
+  const taipei = layer.features.find((f) => f.properties.name === "臺北");
   assert.deepEqual(taipei.geometry.coordinates, [121.5654, 25.033], "GeoJSON is [lon, lat]");
   assert.equal(taipei.properties.icon, "☀️");
 });
