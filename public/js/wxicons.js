@@ -62,7 +62,7 @@
 
   function svg(kind, size = 48) {
     const draw = ART[kind] || ART.unknown;
-    return `<svg class="wx-svg wx-${ART[kind] ? kind : "unknown"}" viewBox="0 0 48 52" width="${size}" height="${size}" aria-hidden="true">${draw()}</svg>`;
+    return `<svg class="wx-svg wx-k-${ART[kind] ? kind : "unknown"}" viewBox="0 0 48 52" width="${size}" height="${size}" aria-hidden="true">${draw()}</svg>`;
   }
 
   window.WxIcons = { svg, kinds: Object.keys(ART) };

@@ -195,8 +195,7 @@ button.ghost {
   border: 1px solid var(--card-border);
   border-radius: var(--radius);
   padding: 18px 20px;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  /* no backdrop-filter: a blur re-renders whatever is behind it on every repaint (GPU-heavy) */
 }
 .card h3 { margin: 0 0 12px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
 
@@ -351,8 +350,7 @@ button.ghost {
   background: radial-gradient(circle at 30% 28%, #a5b4fc 0%, #6366f1 50%, #3b0f7a 100%);
   box-shadow: 0 4px 14px rgba(0, 0, 40, 0.45), inset 0 0 0 2px rgba(255, 255, 255, 0.25);
 }
-.wm-rays { transform-origin: 19px 19px; animation: wm-spin 24s linear infinite; }
-.wm-cloud { animation: wm-drift 5s ease-in-out infinite alternate; }
+.wm-rays { transform-origin: 19px 19px; }
 .wm-text {
   position: relative; display: inline-flex; align-items: baseline;
   font-family: Poppins, var(--font); font-size: 27px; line-height: 1; letter-spacing: -0.5px;
@@ -372,9 +370,12 @@ button.ghost {
 .wm-wind { position: absolute; left: 1px; right: 0; bottom: -7px; width: 100%; height: 9px; overflow: visible; }
 .wm-wind path {
   fill: none; stroke: rgba(255, 255, 255, 0.75); stroke-width: 2; stroke-linecap: round;
-  vector-effect: non-scaling-stroke; stroke-dasharray: 70 220; animation: wm-gust 3.6s ease-in-out infinite;
+  vector-effect: non-scaling-stroke;
 }
-.wordmark:hover .wm-rays { animation-duration: 4s; }
+/* The wordmark is static and only animates on hover (it used to loop forever) */
+.wordmark:hover .wm-rays { animation: wm-spin 4s linear infinite; }
+.wordmark:hover .wm-cloud { animation: wm-drift 1.6s ease-in-out infinite alternate; }
+.wordmark:hover .wm-wind path { stroke-dasharray: 70 220; animation: wm-gust 1.8s ease-in-out infinite; }
 @keyframes wm-spin { to { transform: rotate(360deg); } }
 @keyframes wm-drift { from { transform: translateX(-2px); } to { transform: translateX(2px); } }
 @keyframes wm-gust { from { stroke-dashoffset: 70; } to { stroke-dashoffset: -220; } }
@@ -392,8 +393,9 @@ body.app { height: 100vh; height: 100dvh; overflow: hidden; }
 .panel-head {
   padding: 14px 16px 12px;
   /* blue-violet, so it reads differently from Travel Advisor's cyan-navy */
-  background: linear-gradient(120deg, rgba(59, 130, 246, 0.85) 0%, rgba(99, 102, 241, 0.88) 45%, rgba(124, 58, 237, 0.9) 100%);
-  -webkit-backdrop-filter: blur(14px) saturate(1.6); backdrop-filter: blur(14px) saturate(1.6);
+  /* Opaque on purpose: the old backdrop-filter blur re-rendered the map behind it every frame
+     while the wordmark animated, which kept the GPU busy even when nothing was happening. */
+  background: linear-gradient(120deg, #4a83f0 0%, #6366f1 45%, #7c3aed 100%);
 }
 .panel-top { display: flex; align-items: center; gap: 10px; }
 .by { font: italic 500 11px/1 Poppins, var(--font); letter-spacing: 0.5px; opacity: 0.85; }
@@ -509,28 +511,41 @@ button.small { padding: 6px 12px; font-size: 0.9rem; }
 }
 
 /* ---------- Animated weather icons (WxIcons) ---------- */
-/* No filter on animated icons: a drop-shadow on moving SVG forces a full repaint every frame. */
-.wx-svg { display: block; overflow: visible; }
-.wx-cloud { stroke: rgba(40, 50, 80, 0.35); stroke-width: 0.8; }
-.wx-still * { animation: none !important; } /* static icons for the outer ring and the city layer */
+/* Idle = zero repaints. SVG animations can't run on the compositor, so dozens of always-running
+   icons (map, popup, hourly/daily forecast) kept CPU and GPU busy. Icons are therefore drawn
+   STATIC by default (every drop, bolt and flake visible) and only get their animations for a few
+   seconds after a search (body.wx-live, set by app.js; map icons and the current-weather icon only)
+   or while the pointer is over one. */
+.wx-svg { display: block; overflow: visible; } /* no filter: a drop-shadow on moving SVG repaints every frame */
 .wx-svg * { transform-box: fill-box; }
 .wx-sun { fill: #ffd166; }
-.wx-rays { stroke: #ffd166; stroke-width: 2.6; stroke-linecap: round; animation: wx-spin 12s linear infinite; transform-box: view-box; }
-.wx-moon { fill: #fff3c4; animation: wx-glow 3s ease-in-out infinite alternate; }
-.wx-star { fill: #fff; animation: wx-twinkle 1.8s ease-in-out infinite; transform-origin: center; }
-.wx-cloud { fill: #fff; }
+.wx-rays { stroke: #ffd166; stroke-width: 2.6; stroke-linecap: round; transform-box: view-box; }
+.wx-moon { fill: #fff3c4; }
+.wx-star { fill: #fff; transform-origin: center; }
+.wx-cloud { fill: #fff; stroke: rgba(40, 50, 80, 0.35); stroke-width: 0.8; }
 .wx-cloud.wx-back { fill: #dfe8f3; }
 .wx-cloud.wx-grey { fill: #c9d3df; }
 .wx-cloud.wx-dark { fill: #7d8796; }
-.wx-drift { animation: wx-drift 4s ease-in-out infinite alternate; }
-.wx-drift-slow { animation: wx-drift 6s ease-in-out infinite alternate-reverse; }
-.wx-drop { stroke: #4fb3ff; stroke-width: 2.4; stroke-linecap: round; animation: wx-fall 0.9s linear infinite; }
-.wx-drop.wx-slow { animation-duration: 1.4s; stroke-width: 2; }
-.wx-drop.wx-fast { animation-duration: 0.6s; stroke: #2f8fe8; }
-.wx-bolt { fill: #ffd400; stroke: #a87a00; stroke-width: 0.6; animation: wx-flash 2.2s steps(1, end) infinite; }
-.wx-flake { fill: #fff; font-size: 8px; animation: wx-snow 2.4s linear infinite; }
+.wx-drop { stroke: #4fb3ff; stroke-width: 2.4; stroke-linecap: round; }
+.wx-drop.wx-slow { stroke-width: 2; }
+.wx-drop.wx-fast { stroke: #2f8fe8; }
+.wx-bolt { fill: #ffd400; stroke: #a87a00; stroke-width: 0.6; }
+.wx-flake { fill: #fff; font-size: 8px; }
 .wx-fog line { stroke: #e8eef5; stroke-width: 2.6; stroke-linecap: round; }
-.wx-fog { animation: wx-drift 3s ease-in-out infinite alternate; }
+
+/* Animations only inside these scopes */
+:is(.wx-live .map-full, .wx-live .now-icon, .wx-pin:hover, .hour:hover, .day:hover, .now-icon:hover, .popup-icon:hover) .wx-rays { animation: wx-spin 12s linear infinite; }
+:is(.wx-live .map-full, .wx-live .now-icon, .wx-pin:hover, .hour:hover, .day:hover, .now-icon:hover, .popup-icon:hover) .wx-moon { animation: wx-glow 3s ease-in-out infinite alternate; }
+:is(.wx-live .map-full, .wx-live .now-icon, .wx-pin:hover, .hour:hover, .day:hover, .now-icon:hover, .popup-icon:hover) .wx-star { animation: wx-twinkle 1.8s ease-in-out infinite; }
+:is(.wx-live .map-full, .wx-live .now-icon, .wx-pin:hover, .hour:hover, .day:hover, .now-icon:hover, .popup-icon:hover) .wx-drift { animation: wx-drift 4s ease-in-out infinite alternate; }
+:is(.wx-live .map-full, .wx-live .now-icon, .wx-pin:hover, .hour:hover, .day:hover, .now-icon:hover, .popup-icon:hover) .wx-drift-slow { animation: wx-drift 6s ease-in-out infinite alternate-reverse; }
+:is(.wx-live .map-full, .wx-live .now-icon, .wx-pin:hover, .hour:hover, .day:hover, .now-icon:hover, .popup-icon:hover) .wx-drop { animation: wx-fall 0.9s linear infinite; }
+:is(.wx-live .map-full, .wx-live .now-icon, .wx-pin:hover, .hour:hover, .day:hover, .now-icon:hover, .popup-icon:hover) .wx-drop.wx-slow { animation-duration: 1.4s; }
+:is(.wx-live .map-full, .wx-live .now-icon, .wx-pin:hover, .hour:hover, .day:hover, .now-icon:hover, .popup-icon:hover) .wx-drop.wx-fast { animation-duration: 0.6s; }
+:is(.wx-live .map-full, .wx-live .now-icon, .wx-pin:hover, .hour:hover, .day:hover, .now-icon:hover, .popup-icon:hover) .wx-bolt { animation: wx-flash 2.2s steps(1, end) infinite; }
+:is(.wx-live .map-full, .wx-live .now-icon, .wx-pin:hover, .hour:hover, .day:hover, .now-icon:hover, .popup-icon:hover) .wx-flake { animation: wx-snow 2.4s linear infinite; }
+:is(.wx-live .map-full, .wx-live .now-icon, .wx-pin:hover, .hour:hover, .day:hover, .now-icon:hover, .popup-icon:hover) g.wx-fog { animation: wx-drift 3s ease-in-out infinite alternate; }
+.wx-still * { animation: none !important; } /* outer ring and city layer stay static even during the burst */
 @keyframes wx-spin { to { transform: rotate(360deg); } }
 @keyframes wx-drift { from { transform: translateX(-2px); } to { transform: translateX(2px); } }
 @keyframes wx-fall { 0% { transform: translateY(-4px); opacity: 0; } 25% { opacity: 1; } 100% { transform: translateY(6px); opacity: 0; } }
@@ -552,8 +567,9 @@ button.small { padding: 6px 12px; font-size: 0.9rem; }
 .wx-main .wx-label { font-size: 14px; padding: 2px 10px; background: rgba(10, 16, 40, 0.88); border: 1px solid rgba(255, 255, 255, 0.5); }
 .wx-halo {
   position: absolute; inset: 6px; border-radius: 50%; background: rgba(255, 255, 255, 0.35);
-  animation: wx-pulse 2s ease-out infinite;
+  opacity: 0; /* only shown while pulsing */
 }
+.wx-live .map-full .wx-halo, .wx-pin:hover .wx-halo { animation: wx-pulse 2s ease-out infinite; }
 @keyframes wx-pulse { from { transform: scale(0.7); opacity: 0.9; } to { transform: scale(1.8); opacity: 0; } }
 .wx-hide-outer .wx-pin-wrap:not(:has(.wx-main)) .wx-label .wx-name { display: none; }
 .wx-hide-all .wx-pin-wrap:not(:has(.wx-main)) { display: none; }
