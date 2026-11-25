@@ -292,14 +292,24 @@
         // Keep the popup clear of the floating search panel (top-left; the whole top on phones).
         const phone = window.innerWidth <= 640;
         const headH = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--head-h"), 10) || 0;
-        marker
-          .bindPopup(content, {
-            maxWidth: 320,
-            minWidth: 240,
-            autoPanPaddingTopLeft: L.point(phone ? 10 : 440, phone ? headH + 20 : 20),
-            autoPanPaddingBottomRight: L.point(20, phone ? 70 : 20),
-          })
-          .openPopup();
+        marker.bindPopup(content, {
+          maxWidth: 320,
+          minWidth: 240,
+          autoPanPaddingTopLeft: L.point(phone ? 10 : 440, phone ? headH + 20 : 20),
+          autoPanPaddingBottomRight: L.point(20, phone ? 70 : 20),
+        });
+        // Open the popup once the map has stopped moving, so its auto-pan can keep it
+        // clear of the search panel (opening it first lets flyTo push it under the header).
+        let opened = false;
+        const openNow = () => {
+          if (opened) return;
+          opened = true;
+          // On phones the forecast sheet already shows this place; don't stack the popup on it.
+          if (phone && document.body.classList.contains("drawer-open")) return;
+          marker.openPopup();
+        };
+        map.once("moveend", openNow);
+        setTimeout(openNow, 1500); // in case the map didn't need to move at all
         map.flyTo(latlng, Math.max(map.getZoom(), 11), { duration: 0.8 });
         nearby.load(lat, lon, info && info.name);
       },
