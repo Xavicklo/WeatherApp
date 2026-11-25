@@ -89,7 +89,7 @@
 
   function cityIcon(props, unit) {
     const span = document.createElement("span");
-    span.className = "city-pin";
+    span.className = "city-pin wx-still"; // 14 always-visible pins: keep them static to save CPU
     if (window.WxIcons) span.insertAdjacentHTML("afterbegin", WxIcons.svg(props.kind, 26)); // trusted, fixed markup
     else span.append(`${props.icon} `);
     span.append(`${props.name} ${WeatherFormat.formatTemp(props.temperature, unit)}`);
@@ -100,9 +100,10 @@
    * Animated weather pin: the icon plus a label. Built from DOM nodes because
    * place names come from third parties (no HTML strings with their text).
    */
-  function wxIcon({ kind, temperature, name, main }, unit) {
+  function wxIcon({ kind, temperature, name, main, ring }, unit) {
     const root = document.createElement("div");
-    root.className = `wx-pin${main ? " wx-main" : ""}`;
+    // Only the searched place and the nearest ring animate; the outer ring stays still (less CPU).
+    root.className = `wx-pin${main ? " wx-main" : ""}${ring > 1 ? " wx-still" : ""}`;
     if (main) root.appendChild(Object.assign(document.createElement("span"), { className: "wx-halo" }));
     if (window.WxIcons) root.insertAdjacentHTML("beforeend", WxIcons.svg(kind, main ? 66 : 46));
     const label = document.createElement("span");
