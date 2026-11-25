@@ -107,7 +107,6 @@
       state.data = data;
       render();
       showOnMap(data);
-      playIcons();
       setStatus("");
       if (params.address) {
         addRecent(params.address);
@@ -320,13 +319,6 @@
   if (!map) document.body.classList.add("no-map");
   else document.addEventListener("drawer:open", () => map.closePopup());
 
-  // Weather icons animate for a few seconds after each result, then stop (an idle page repaints nothing)
-  let liveTimer = null;
-  function playIcons(ms = 8000) {
-    document.body.classList.add("wx-live");
-    clearTimeout(liveTimer);
-    liveTimer = setTimeout(() => document.body.classList.remove("wx-live"), ms);
-  }
 
   function showOnMap(data) {
     if (!map || !data.point) return;
