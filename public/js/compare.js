@@ -61,7 +61,7 @@
       id: "au-longwood",
       name: "澳洲維多利亞州 Longwood 森林大火（2026）",
       note: "2026 年 1 月熱浪引發的森林大火，Longwood 附近燒了將近 15 萬公頃。右側灰紫色的大片區域就是燒毀範圍（1/4 對 1/24）。",
-      center: [-36.93, 145.45],
+      center: [-37.08, 145.62],
       zoom: 11,
       left: { source: "hls", value: "2026-01-04" },
       right: { source: "hls", value: "2026-01-24" },

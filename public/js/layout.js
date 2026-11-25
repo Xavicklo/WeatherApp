@@ -90,6 +90,7 @@
     open(target) {
       if (drawer.hidden) {
         drawer.hidden = false;
+        document.body.classList.add("has-drawer");
         void drawer.offsetWidth; // apply the closed position first so the slide-in animates
       }
       setOpen(true);
@@ -102,6 +103,7 @@
     /** Show the drawer's tab once there is something to show. */
     ready() {
       drawer.hidden = false;
+      document.body.classList.add("has-drawer"); // phones: map controls make room for the sheet's tab
     },
     /** One-line summary on the tab, e.g. "臺北 21°C". */
     peek(text) {
