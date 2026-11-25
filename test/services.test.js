@@ -146,3 +146,39 @@ test("wayback catalog is fetched once and then served from the cache", async () 
   assert.equal(second, first);
   assert.equal(fetchImpl.calls.length, 1);
 });
+
+const { kind: wmoKind } = require("../src/lib/wmo");
+const { createNearby, samplePoints } = require("../src/services/nearby");
+
+test("wmo kind groups codes for the animated icons", () => {
+  assert.equal(wmoKind(0, true), "clear");
+  assert.equal(wmoKind(1, false), "clear-night");
+  assert.equal(wmoKind(61), "rain");
+  assert.equal(wmoKind(65), "heavy");
+  assert.equal(wmoKind(95), "thunder");
+  assert.equal(wmoKind(3, false), "cloudy");
+  assert.equal(wmoKind(999), "unknown");
+});
+
+test("samplePoints puts the centre first and two rings around it", () => {
+  const pts = samplePoints(25.06, 121.53);
+  assert.equal(pts.length, 1 + 6 + 8);
+  assert.deepEqual([pts[0].lat, pts[0].lon, pts[0].ring], [25.06, 121.53, 0]);
+  // the first ring-1 point is due north, about 5 km away
+  assert.ok(Math.abs(pts[1].lat - (25.06 + 5 / 111.32)) < 1e-3);
+  assert.equal(pts[1].lon, 121.53);
+  assert.ok(samplePoints(0, 179.99).every((p) => p.lon >= -180 && p.lon <= 180));
+});
+
+test("nearby makes one upstream call and returns GeoJSON with kinds", async () => {
+  const one = (code, t) => ({ current: { temperature_2m: t, weather_code: code, is_day: 1, precipitation: 0.4 } });
+  const fetchImpl = fakeFetch({ [WX]: Array.from({ length: 15 }, (_, i) => one(i === 0 ? 63 : 0, 20 + i)) });
+  const geo = await createNearby({ fetchImpl, cache: new TTLCache() })(25.06, 121.53);
+  assert.equal(fetchImpl.calls.length, 1);
+  assert.equal(geo.type, "FeatureCollection");
+  assert.equal(geo.features.length, 15);
+  assert.deepEqual(geo.features[0].geometry.coordinates, [121.53, 25.06]);
+  assert.equal(geo.features[0].properties.kind, "heavy");
+  assert.equal(geo.features[0].properties.text, "中雨");
+  assert.equal(geo.features[1].properties.kind, "clear");
+});

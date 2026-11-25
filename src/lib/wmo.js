@@ -39,4 +39,24 @@ function describe(code, isDay = true) {
   return { text: entry.text, icon: (!isDay && entry.night) || entry.day };
 }
 
-module.exports = { describe, CODES };
+/**
+ * Coarse category used to pick an animated map icon:
+ * clear | partly | cloudy | fog | drizzle | rain | heavy | thunder | snow (+ "-night" for clear/partly at night).
+ */
+function kind(code, isDay = true) {
+  const c = Number(code);
+  let k;
+  if (c === 0 || c === 1) k = "clear";
+  else if (c === 2) k = "partly";
+  else if (c === 3) k = "cloudy";
+  else if (c === 45 || c === 48) k = "fog";
+  else if (c >= 51 && c <= 57) k = "drizzle";
+  else if (c === 61 || c === 80) k = "rain";
+  else if ((c >= 63 && c <= 67) || c === 81 || c === 82) k = "heavy";
+  else if ((c >= 71 && c <= 77) || c === 85 || c === 86) k = "snow";
+  else if (c === 95 || c === 96 || c === 99) k = "thunder";
+  else return "unknown";
+  return !isDay && (k === "clear" || k === "partly") ? `${k}-night` : k;
+}
+
+module.exports = { describe, kind, CODES };

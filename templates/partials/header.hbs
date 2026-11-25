@@ -1,8 +1,5 @@
 <header class="site-header">
-  <a class="brand" href="/" aria-label="回到首頁">
-    <img class="moon" src="/img/moon.png" alt="" width="40" height="40">
-    <span>天氣查詢</span>
-  </a>
+  {{> wordmark }}
   <nav aria-label="主選單">
     <ul>
       <li><a href="/" {{#if (eq path "/")}}aria-current="page"{{/if}}>天氣</a></li>

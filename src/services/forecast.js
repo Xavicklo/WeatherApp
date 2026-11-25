@@ -1,5 +1,5 @@
 const { getJson } = require("../lib/http");
-const { describe } = require("../lib/wmo");
+const { describe, kind } = require("../lib/wmo");
 
 const FORECAST_URL = "https://api.open-meteo.com/v1/forecast";
 
@@ -79,6 +79,7 @@ function normalize(body, hoursAhead = 24) {
       visibility: visibilityM == null ? null : round(visibilityM / 1000, 1),
       uvIndex: daily[0] ? daily[0].uvIndex : null,
       ...describe(c.weather_code, isDay),
+      kind: kind(c.weather_code, isDay),
     },
     hourly,
     daily,

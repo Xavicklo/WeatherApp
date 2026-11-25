@@ -53,7 +53,7 @@
       L.DomEvent.disableClickPropagation(container);
       L.DomEvent.on(button, "click", (e) => {
         L.DomEvent.preventDefault(e);
-        const target = map.getContainer().closest(".map-card") || map.getContainer();
+        const target = document.documentElement; // the whole app, so the floating panel stays visible
         if (document.fullscreenElement) document.exitFullscreen();
         else if (target.requestFullscreen) target.requestFullscreen();
       });
@@ -90,8 +90,96 @@
   function cityIcon(props, unit) {
     const span = document.createElement("span");
     span.className = "city-pin";
-    span.textContent = `${props.name} ${props.icon} ${WeatherFormat.formatTemp(props.temperature, unit)}`;
+    if (window.WxIcons) span.insertAdjacentHTML("afterbegin", WxIcons.svg(props.kind, 26)); // trusted, fixed markup
+    else span.append(`${props.icon} `);
+    span.append(`${props.name} ${WeatherFormat.formatTemp(props.temperature, unit)}`);
     return L.divIcon({ className: "city-pin-wrap", html: span.outerHTML, iconSize: null });
+  }
+
+  /**
+   * Animated weather pin: the icon plus a label. Built from DOM nodes because
+   * place names come from third parties (no HTML strings with their text).
+   */
+  function wxIcon({ kind, temperature, name, main }, unit) {
+    const root = document.createElement("div");
+    root.className = `wx-pin${main ? " wx-main" : ""}`;
+    if (main) root.appendChild(Object.assign(document.createElement("span"), { className: "wx-halo" }));
+    if (window.WxIcons) root.insertAdjacentHTML("beforeend", WxIcons.svg(kind, main ? 66 : 46));
+    const label = document.createElement("span");
+    label.className = "wx-label";
+    if (name) label.appendChild(Object.assign(document.createElement("span"), { className: "wx-name", textContent: name }));
+    label.appendChild(Object.assign(document.createElement("b"), { textContent: WeatherFormat.formatTemp(temperature, unit) }));
+    root.appendChild(label);
+    const w = main ? 66 : 46;
+    return L.divIcon({ className: "wx-pin-wrap", html: root, iconSize: [w, w], iconAnchor: [w / 2, w / 2], popupAnchor: [0, -w / 2] });
+  }
+
+  /** District name for a point (BigDataCloud's free client-side reverse geocoder, no key). */
+  const nameCache = new Map();
+  function placeName(lat, lon, signal) {
+    const key = `${lat.toFixed(3)},${lon.toFixed(3)}`;
+    if (nameCache.has(key)) return Promise.resolve(nameCache.get(key));
+    const url = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=zh`;
+    return fetch(url, { signal })
+      .then((r) => (r.ok ? r.json() : {}))
+      .then((d) => {
+        const name = (d && (d.locality || d.city)) || "";
+        nameCache.set(key, name);
+        return name;
+      })
+      .catch(() => "");
+  }
+
+  /** Animated icons around the searched place (GeoJSON from /api/nearby). */
+  function createNearbyLayer(map, getUnit) {
+    const layer = L.layerGroup();
+    let controller = null;
+
+    function draw(marker) {
+      marker.setIcon(wxIcon(marker.wx, getUnit()));
+    }
+
+    async function load(lat, lon, centreName) {
+      if (controller) controller.abort();
+      controller = new AbortController();
+      const { signal } = controller;
+      layer.clearLayers();
+      let geo;
+      try {
+        const r = await fetch(`/api/nearby?lat=${lat.toFixed(4)}&lon=${lon.toFixed(4)}`, { signal });
+        if (!r.ok) return;
+        geo = await r.json();
+      } catch {
+        return;
+      }
+      const markers = geo.features.slice(1).map((f) => {
+        const [x, y] = f.geometry.coordinates;
+        const m = L.marker([y, x], { keyboard: false, zIndexOffset: f.properties.ring === 1 ? 100 : 0 });
+        m.wx = { ...f.properties, name: "" };
+        m.bindTooltip(`${f.properties.text}`, { direction: "top", offset: [0, -22] });
+        m.on("click", () => map.fire("click", { latlng: m.getLatLng() })); // same as clicking the map there
+        draw(m);
+        layer.addLayer(m);
+        return m;
+      });
+      // Names arrive afterwards; show each district name once, closest ring first.
+      const names = await Promise.all(markers.map((m) => placeName(m.getLatLng().lat, m.getLatLng().lng, signal)));
+      if (signal.aborted) return;
+      const seen = new Set([centreName]);
+      markers.forEach((m, i) => {
+        const name = names[i];
+        if (name && !seen.has(name)) {
+          seen.add(name);
+          m.wx.name = name;
+          m.setTooltipContent(`${name} · ${m.wx.text}`);
+          draw(m);
+        }
+      });
+    }
+
+    layer.load = load;
+    layer.refreshUnits = () => layer.eachLayer(draw);
+    return layer;
   }
 
   /** RainViewer radar tiles (free, no key). The newest frame is looked up at runtime. */
@@ -142,8 +230,17 @@
     cities.on("layeradd", refreshLabels);
     map.on("overlayadd", refreshLabels);
     const radar = createRadarLayer();
+    const nearby = createNearbyLayer(map, getUnit).addTo(map);
+    // Fewer pins when zoomed out, so the animated icons don't pile up
+    const thinOut = () => {
+      const z = map.getZoom();
+      map.getContainer().classList.toggle("wx-hide-outer", z < 11);
+      map.getContainer().classList.toggle("wx-hide-all", z < 9);
+    };
+    map.on("zoomend", thinOut);
+    thinOut();
     L.control
-      .layers(bases, { 地名與行政界線: labels, 城市即時氣溫: cities, 雷達回波: radar }, { collapsed: window.innerWidth < 900 })
+      .layers(bases, { 地名與行政界線: labels, 城市即時氣溫: cities, 附近天氣動畫: nearby, 雷達回波: radar }, { collapsed: window.innerWidth < 900 })
       .addTo(map);
     new FullscreenControl().addTo(map);
     if (window.ImageryCompare) window.ImageryCompare.attach(map); // 災前災後比對（swipe）
@@ -157,15 +254,21 @@
     });
 
     return {
-      show(lat, lon, content) {
+      /** info: { kind, temperature, name } of the searched place, for its animated pin. */
+      show(lat, lon, content, info) {
         const latlng = [lat, lon];
-        if (!marker) marker = L.marker(latlng).addTo(map);
+        if (!marker) marker = L.marker(latlng, { zIndexOffset: 1000 }).addTo(map);
         else marker.setLatLng(latlng);
+        marker.wx = { ...(info || {}), main: true };
+        marker.setIcon(info ? wxIcon(marker.wx, getUnit()) : new L.Icon.Default());
         marker.bindPopup(content, { maxWidth: 320, minWidth: 240 }).openPopup();
-        map.flyTo(latlng, Math.max(map.getZoom(), 9), { duration: 0.8 });
+        map.flyTo(latlng, Math.max(map.getZoom(), 11), { duration: 0.8 });
+        nearby.load(lat, lon, info && info.name);
       },
       refreshUnits() {
         cities.refreshUnits();
+        nearby.refreshUnits();
+        if (marker && marker.wx && marker.wx.kind) marker.setIcon(wxIcon(marker.wx, getUnit()));
         refreshLabels();
       },
       invalidateSize() {

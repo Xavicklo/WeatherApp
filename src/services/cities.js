@@ -1,5 +1,5 @@
 const { getJson } = require("../lib/http");
-const { describe } = require("../lib/wmo");
+const { describe, kind } = require("../lib/wmo");
 
 /**
  * Current temperature for a fixed set of Taiwanese cities, returned as a
@@ -40,6 +40,7 @@ function toFeatureCollection(cities, bodies) {
           minZoom: city.minZoom || 0, // smaller places only appear when zoomed in, so labels don't overlap
           temperature: current.temperature_2m == null ? null : Math.round(current.temperature_2m * 10) / 10,
           ...describe(current.weather_code, current.is_day !== 0),
+          kind: kind(current.weather_code, current.is_day !== 0),
         },
       };
     }),

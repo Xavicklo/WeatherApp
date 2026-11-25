@@ -103,6 +103,8 @@
       if (params.address) {
         addRecent(params.address);
         updateUrl(params.address);
+        // A typed search should show the forecast straight away (map clicks keep the map in view).
+        if (window.Layout && !window.Layout.isPhone()) window.Layout.reveal();
       }
     } catch (err) {
       if (err.name === "AbortError") return;
@@ -173,7 +175,8 @@
     const today = d.daily[0];
 
     applyTheme(c);
-    document.title = `${F.formatTemp(c.temperature, u)} ${d.location} · 天氣查詢`;
+    document.title = `${F.formatTemp(c.temperature, u)} ${d.location} · WeatherApp`;
+    if (window.Layout) window.Layout.peek(`${d.location} ${c.icon} ${F.formatTemp(c.temperature, u)}`);
 
     els.place.textContent = d.location;
     els.placeMeta.textContent = `${F.formatCoord(d.latitude, d.longitude)} · 當地時間 ${c.time.replace("T", " ")}`;
@@ -296,7 +299,7 @@
   } catch (err) {
     console.error("Map failed to start:", err);
   }
-  if (!map) document.querySelector(".map-card").hidden = true;
+  if (!map) document.body.classList.add("no-map");
 
   function showOnMap(data) {
     if (!map || !data.point) return;
@@ -305,8 +308,11 @@
     const today = data.daily[0] || {};
     const u = state.unit;
     const row = (label, value) => el("div", { class: "popup-row" }, [el("span", { text: label }), el("b", { text: value })]);
-    const more = el("button", { type: "button", class: "popup-more", text: "查看完整預報 ↓" });
-    more.addEventListener("click", () => els.result.scrollIntoView({ behavior: "smooth", block: "start" }));
+    const more = el("button", { type: "button", class: "popup-more", text: "查看完整預報" });
+    more.addEventListener("click", () => {
+      if (window.Layout) window.Layout.reveal(els.result);
+      else els.result.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
     const popup = el("div", { class: "map-popup" }, [
       el("strong", { class: "popup-title", text: data.location }),
       el("div", { class: "popup-now" }, [
@@ -323,7 +329,11 @@
       more,
     ]);
     try {
-      map.show(data.point.latitude, data.point.longitude, popup);
+      map.show(data.point.latitude, data.point.longitude, popup, {
+        kind: c.kind,
+        temperature: c.temperature,
+        name: String(data.location).split(",")[0],
+      });
     } catch (err) {
       console.error(err);
     }

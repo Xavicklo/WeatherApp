@@ -9,6 +9,7 @@ const { createReverseGeocoder } = require("./services/reverseGeocode");
 const { createCityLayer } = require("./services/cities");
 const { createWeatherController } = require("./controllers/weather");
 const { createWaybackCatalog } = require("./services/wayback");
+const { createNearby } = require("./services/nearby");
 
 const AUTHOR = "Xavick Lo";
 
@@ -23,6 +24,7 @@ function createApp(deps = {}) {
   const reverseGeocode = deps.reverseGeocode || createReverseGeocoder({ cache });
   const cityLayer = deps.cityLayer || createCityLayer({ cache });
   const waybackReleases = deps.waybackReleases || createWaybackCatalog({ cache });
+  const nearby = deps.nearby || createNearby({ cache });
   const handleWeather = createWeatherController({ geocode, forecast, reverseGeocode, logger: deps.logger });
 
   const app = express();
@@ -57,7 +59,7 @@ function createApp(deps = {}) {
   });
 
   // Pages
-  app.get("/", (req, res) => res.render("index", { title: "天氣查詢" }));
+  app.get("/", (req, res) => res.render("index", { title: "WeatherApp" }));
   app.get("/about", (req, res) => res.render("about", { title: "關於" }));
   app.get("/help", (req, res) => res.render("help", { title: "使用說明" }));
 
@@ -75,6 +77,20 @@ function createApp(deps = {}) {
       res.type("application/geo+json").send(JSON.stringify(await cityLayer()));
     } catch (err) {
       res.status(err.status || 500).json({ error: "城市溫度圖層暫時無法使用。" });
+    }
+  });
+
+  // Current weather at a point and around it (GeoJSON), for the animated map icons
+  app.get("/api/nearby", async (req, res) => {
+    const lat = Number(req.query.lat);
+    const lon = Number(req.query.lon);
+    if (req.query.lat == null || req.query.lon == null || !(Math.abs(lat) <= 90) || !(Math.abs(lon) <= 180)) {
+      return res.status(400).json({ error: "lat 和 lon 必須是有效的座標。" });
+    }
+    try {
+      res.type("application/geo+json").send(JSON.stringify(await nearby(lat, lon)));
+    } catch (err) {
+      res.status(err.status || 500).json({ error: "附近天氣暫時無法使用。" });
     }
   });
 
