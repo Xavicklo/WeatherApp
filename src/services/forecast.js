@@ -14,7 +14,7 @@ const CURRENT = [
   "wind_speed_10m",
   "wind_direction_10m",
 ];
-const HOURLY = ["temperature_2m", "precipitation_probability", "weather_code", "visibility"];
+const HOURLY = ["temperature_2m", "precipitation_probability", "weather_code", "visibility", "is_day"];
 const DAILY = [
   "weather_code",
   "temperature_2m_max",
@@ -48,7 +48,8 @@ function normalize(body, hoursAhead = 24) {
       time,
       temperature: round(h.temperature_2m[j], 1),
       precipitationProbability: h.precipitation_probability[j],
-      ...describe(h.weather_code[j]),
+      ...describe(h.weather_code[j], !h.is_day || h.is_day[j] !== 0),
+      kind: kind(h.weather_code[j], !h.is_day || h.is_day[j] !== 0),
     };
   });
 
@@ -61,6 +62,7 @@ function normalize(body, hoursAhead = 24) {
     sunset: d.sunset[i],
     uvIndex: round(d.uv_index_max[i], 1),
     ...describe(d.weather_code[i]),
+    kind: kind(d.weather_code[i]),
   }));
 
   const visibilityM = h.visibility ? h.visibility[start] : null;

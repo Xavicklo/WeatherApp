@@ -68,6 +68,14 @@
     return node;
   }
 
+  /** Animated SVG weather icon (falls back to the emoji if wxicons.js didn't load). */
+  function wxIcon(className, item, size) {
+    const span = el("span", { class: className, title: item.text });
+    if (window.WxIcons && item.kind) span.innerHTML = window.WxIcons.svg(item.kind, size); // fixed, trusted markup
+    else span.textContent = item.icon;
+    return span;
+  }
+
   // ---------- UI states ----------
   function setStatus(message, kind) {
     els.status.textContent = message || "";
@@ -82,7 +90,7 @@
   }
 
   // ---------- data ----------
-  async function load(params, label) {
+  async function load(params, label, opts = {}) {
     // Cancel an in-flight request so a slow old response can't overwrite a newer one.
     if (state.controller) state.controller.abort();
     const controller = new AbortController();
@@ -103,9 +111,9 @@
       if (params.address) {
         addRecent(params.address);
         updateUrl(params.address);
-        // A typed search should show the forecast straight away (map clicks keep the map in view).
-        if (window.Layout && !window.Layout.isPhone()) window.Layout.reveal();
       }
+      // A typed search (or "my location") slides the forecast drawer out; map clicks keep the map in view.
+      if (opts.open && window.Layout) window.Layout.open();
     } catch (err) {
       if (err.name === "AbortError") return;
       els.result.hidden = true;
@@ -123,7 +131,7 @@
     const query = address.trim();
     if (!query) return;
     els.input.value = query;
-    load({ address: query }, `「${query}」`);
+    load({ address: query }, `「${query}」`, { open: true });
   }
 
   function updateUrl(query) {
@@ -176,12 +184,16 @@
 
     applyTheme(c);
     document.title = `${F.formatTemp(c.temperature, u)} ${d.location} · WeatherApp`;
-    if (window.Layout) window.Layout.peek(`${d.location} ${c.icon} ${F.formatTemp(c.temperature, u)}`);
+    if (window.Layout) {
+      window.Layout.peek(`${String(d.location).split(",")[0]} ${F.formatTemp(c.temperature, u)}`);
+      window.Layout.ready();
+    }
 
     els.place.textContent = d.location;
     els.placeMeta.textContent = `${F.formatCoord(d.latitude, d.longitude)} · 當地時間 ${c.time.replace("T", " ")}`;
     els.condition.textContent = c.text;
-    els.icon.textContent = c.icon;
+    if (window.WxIcons && c.kind) els.icon.innerHTML = window.WxIcons.svg(c.kind, 64); // fixed, trusted markup
+    else els.icon.textContent = c.icon;
     els.temp.textContent = F.formatTemp(c.temperature, u);
     els.summary.textContent = today
       ? `體感 ${F.formatTemp(c.feelsLike, u)} · 最高 ${F.formatTemp(today.max, u)} · 最低 ${F.formatTemp(today.min, u)}`
@@ -255,7 +267,7 @@
       { class: "hourly-cols", style: { width: `${width + colWidth}px` } },
       hours.map((h, i) =>
         el("div", { class: "hour", style: { width: `${colWidth}px` } }, [
-          el("span", { class: "hour-icon", text: h.icon, title: h.text }),
+          wxIcon("hour-icon", h, 30),
           el("span", { class: "hour-rain", text: h.precipitationProbability ? `💧${h.precipitationProbability}%` : "" }),
           el("span", { class: "hour-time", text: i === 0 ? "現在" : F.formatHour(h.time) }),
         ])
@@ -274,7 +286,7 @@
         const bar = F.rangeBar(day.min, day.max, weekMin, weekMax);
         return el("li", { class: "day" }, [
           el("span", { class: "day-name", text: F.formatDay(day.date, i) }),
-          el("span", { class: "day-icon", text: day.icon, title: day.text }),
+          wxIcon("day-icon", day, 30),
           el("span", { class: "day-rain", text: day.precipitationProbability ? `💧${day.precipitationProbability}%` : "" }),
           el("span", { class: "day-min", text: F.formatTemp(day.min, unit) }),
           el("span", { class: "range" }, [
@@ -293,7 +305,11 @@
     if (window.WeatherMap) {
       map = window.WeatherMap.init("map", {
         getUnit: () => state.unit,
-        onPick: (lat, lon) => load({ lat: lat.toFixed(4), lon: lon.toFixed(4) }, F.formatCoord(lat, lon)),
+        onPick: (lat, lon, force) => {
+          // With the forecast drawer open, a click on the map just closes it.
+          if (!force && window.Layout && window.Layout.isOpen()) return window.Layout.close();
+          load({ lat: lat.toFixed(4), lon: lon.toFixed(4) }, F.formatCoord(lat, lon));
+        },
       });
     }
   } catch (err) {
@@ -310,7 +326,7 @@
     const row = (label, value) => el("div", { class: "popup-row" }, [el("span", { text: label }), el("b", { text: value })]);
     const more = el("button", { type: "button", class: "popup-more", text: "查看完整預報" });
     more.addEventListener("click", () => {
-      if (window.Layout) window.Layout.reveal(els.result);
+      if (window.Layout) window.Layout.open(els.result);
       else els.result.scrollIntoView({ behavior: "smooth", block: "start" });
     });
     const popup = el("div", { class: "map-popup" }, [
@@ -369,7 +385,7 @@
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
-        load({ lat: latitude.toFixed(4), lon: longitude.toFixed(4) }, "你的位置");
+        load({ lat: latitude.toFixed(4), lon: longitude.toFixed(4) }, "你的位置", { open: true });
       },
       (err) => {
         setStatus(

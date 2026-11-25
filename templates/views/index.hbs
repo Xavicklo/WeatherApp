@@ -8,14 +8,12 @@
   <!-- The map fills the whole window; everything else floats on top of it. -->
   <div id="map" class="map map-full" role="region" aria-label="地圖"></div>
 
+  <!-- Left: title and search -->
   <aside id="panel" class="panel" aria-label="天氣查詢">
     <header class="panel-head">
       <div class="panel-top">
         {{> wordmark }}
         <span class="by">by Xavick</span>
-        <button type="button" id="panel-toggle" class="icon-btn panel-toggle" aria-controls="panel-body" aria-expanded="true" aria-label="收起面板">
-          <span aria-hidden="true">⌃</span>
-        </button>
       </div>
 
       <form id="search-form" class="search-form" role="search" autocomplete="off">
@@ -32,61 +30,62 @@
           <button type="button" data-unit="F" aria-pressed="false">°F</button>
         </div>
       </div>
+      <ul id="recent" class="recent" aria-label="最近搜尋"></ul>
+      <p id="status" class="status" role="status" aria-live="polite"></p>
       <p class="head-hint">📍 點地圖任一點查天氣 · 🛰️ 災前災後比對</p>
     </header>
+  </aside>
 
-    <div id="panel-body" class="panel-body">
-      <button type="button" id="sheet-handle" class="sheet-handle" aria-controls="panel-body" aria-expanded="false">
-        <span class="grip" aria-hidden="true"></span>
-        <span id="sheet-label">天氣詳情 · 往上滑查看</span>
-      </button>
+  <!-- Right (phone: bottom): the forecast drawer, closed until a search finishes -->
+  <aside id="drawer" class="drawer" aria-label="天氣預報" hidden>
+    <button type="button" id="drawer-tab" class="drawer-tab" aria-controls="drawer-body" aria-expanded="false">
+      <span class="grip" aria-hidden="true"></span>
+      <span class="tab-arrow" aria-hidden="true">‹</span>
+      <span id="drawer-label" class="tab-label">天氣預報</span>
+    </button>
 
-      <div class="panel-scroll">
-        <ul id="recent" class="recent" aria-label="最近搜尋"></ul>
-        <p id="status" class="status" role="status" aria-live="polite"></p>
-
-        <section id="result" class="result" hidden aria-live="polite">
-          <article class="card now">
-            <div class="now-main">
-              <div>
-                <h2 id="place"></h2>
-                <p id="place-meta" class="muted"></p>
-                <p id="condition" class="condition"></p>
-              </div>
-              <div class="now-temp">
-                <span id="icon" class="now-icon" aria-hidden="true"></span>
-                <span id="temp" class="temp-big"></span>
-              </div>
+    <div id="drawer-body" class="drawer-body">
+      <section id="result" class="result" hidden aria-live="polite">
+        <article class="card now">
+          <div class="now-main">
+            <div>
+              <h2 id="place"></h2>
+              <p id="place-meta" class="muted"></p>
+              <p id="condition" class="condition"></p>
             </div>
-            <p id="summary" class="muted"></p>
-          </article>
-
-          <div class="stats" id="stats"></div>
-
-          <article class="card hourly-card">
-            <h3>未來 24 小時</h3>
-            <div class="hourly-scroll">
-              <div id="hourly" class="hourly"></div>
+            <div class="now-temp">
+              <span id="icon" class="now-icon" aria-hidden="true"></span>
+              <span id="temp" class="temp-big"></span>
             </div>
-          </article>
+          </div>
+          <p id="summary" class="muted"></p>
+        </article>
 
-          <article class="card daily-card">
-            <h3>一週預報</h3>
-            <ol id="daily" class="daily"></ol>
-          </article>
-        </section>
+        <div class="stats" id="stats"></div>
 
-        <section id="skeleton" class="result skeleton" hidden aria-hidden="true">
-          <div class="card sk-block"></div>
-          <div class="stats"><div class="sk-stat"></div><div class="sk-stat"></div><div class="sk-stat"></div><div class="sk-stat"></div></div>
-          <div class="card sk-block tall"></div>
-        </section>
+        <article class="card hourly-card">
+          <h3>未來 24 小時</h3>
+          <div class="hourly-scroll">
+            <div id="hourly" class="hourly"></div>
+          </div>
+        </article>
 
-        <footer class="panel-foot">
-          <nav aria-label="其他頁面"><a href="/about">關於</a> · <a href="/help">說明</a></nav>
-          <p>© {{year}} {{name}} · 資料來源 <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a></p>
-        </footer>
-      </div>
+        <article class="card daily-card">
+          <h3>一週預報</h3>
+          <ol id="daily" class="daily"></ol>
+        </article>
+      </section>
+
+      <section id="skeleton" class="result skeleton" hidden aria-hidden="true">
+        <div class="card sk-block"></div>
+        <div class="stats"><div class="sk-stat"></div><div class="sk-stat"></div><div class="sk-stat"></div><div class="sk-stat"></div></div>
+        <div class="card sk-block tall"></div>
+      </section>
+
+      <footer class="panel-foot">
+        <nav aria-label="其他頁面"><a href="/about">關於</a> · <a href="/help">說明</a></nav>
+        <p>© {{year}} {{name}} · 資料來源 <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a></p>
+      </footer>
     </div>
   </aside>
 

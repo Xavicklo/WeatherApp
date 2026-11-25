@@ -1,80 +1,110 @@
 /**
- * Full-window layout: the floating side panel (desktop) and the bottom sheet (phone).
- * Exposes window.Layout so app.js can open the details after a search.
+ * Full-window layout.
+ *  - Left: the floating title/search panel.
+ *  - Right (phone: bottom): the forecast drawer. Closed by default, slides
+ *    out after a search, closes when the map is clicked. Its tab can be
+ *    clicked or dragged (right-to-left on desktop, bottom-to-top on phones).
+ * Exposes window.Layout for app.js.
  */
 (function () {
   "use strict";
 
-  const panel = document.getElementById("panel");
-  if (!panel) return;
-  const head = panel.querySelector(".panel-head");
-  const body = document.getElementById("panel-body");
-  const toggle = document.getElementById("panel-toggle");
-  const handle = document.getElementById("sheet-handle");
-  const label = document.getElementById("sheet-label");
+  const head = document.querySelector(".panel-head");
+  const drawer = document.getElementById("drawer");
+  if (!head || !drawer) return;
+  const tab = document.getElementById("drawer-tab");
+  const body = document.getElementById("drawer-body");
+  const label = document.getElementById("drawer-label");
   const phone = window.matchMedia("(max-width: 640px)");
+  const root = document.documentElement;
 
   // Leaflet controls sit below the floating header on phones, so publish its height to CSS.
-  const publishHeight = () => document.documentElement.style.setProperty("--head-h", `${head.offsetHeight}px`);
+  const publishHeight = () => root.style.setProperty("--head-h", `${head.offsetHeight}px`);
   if ("ResizeObserver" in window) new ResizeObserver(publishHeight).observe(head);
   publishHeight();
 
-  // ---------- desktop: fold the panel down to its header ----------
-  function setCollapsed(collapsed) {
-    panel.classList.toggle("collapsed", collapsed);
-    toggle.setAttribute("aria-expanded", String(!collapsed));
-    toggle.setAttribute("aria-label", collapsed ? "展開面板" : "收起面板");
+  let open = false;
+  function setOpen(value) {
+    open = value;
+    drawer.classList.toggle("open", open);
+    document.body.classList.toggle("drawer-open", open);
+    tab.setAttribute("aria-expanded", String(open));
+    tab.setAttribute("aria-label", open ? "收起天氣預報" : "展開天氣預報");
+    drawer.style.transform = ""; // drop any position left over from a drag
   }
-  toggle.addEventListener("click", () => {
-    if (phone.matches) setSheet(!panel.classList.contains("sheet-open"));
-    else setCollapsed(!panel.classList.contains("collapsed"));
-  });
 
-  // ---------- phone: bottom sheet ----------
-  function setSheet(open) {
-    panel.classList.toggle("sheet-open", open);
-    handle.setAttribute("aria-expanded", String(open));
-    label.textContent = open ? "收起 · 往下滑" : label.dataset.peek || "天氣詳情 · 往上滑查看";
-  }
-  handle.addEventListener("click", () => setSheet(!panel.classList.contains("sheet-open")));
-
-  // A small swipe on the handle: up opens, down closes.
-  let startY = null;
-  handle.addEventListener("pointerdown", (e) => {
-    startY = e.clientY;
+  // ---------- tab: click, or drag (x on desktop, y on phones) ----------
+  let drag = null;
+  tab.addEventListener("pointerdown", (e) => {
+    drag = { x: e.clientX, y: e.clientY, moved: 0, rect: drawer.getBoundingClientRect() };
+    tab.setPointerCapture(e.pointerId);
+    drawer.classList.add("dragging");
   });
-  handle.addEventListener("pointerup", (e) => {
-    if (startY == null) return;
-    const dy = e.clientY - startY;
-    startY = null;
-    if (Math.abs(dy) > 30) {
-      setSheet(dy < 0);
-      handle.dataset.swiped = "1"; // the click that follows should not toggle back
+  tab.addEventListener("pointermove", (e) => {
+    if (!drag) return;
+    if (phone.matches) {
+      const dy = e.clientY - drag.y;
+      drag.moved = dy;
+      const closedY = drag.rect.height - tab.offsetHeight;
+      const base = open ? 0 : closedY;
+      drawer.style.transform = `translateY(${Math.min(closedY, Math.max(0, base + dy))}px)`;
+    } else {
+      const dx = e.clientX - drag.x;
+      drag.moved = dx;
+      const closedX = drag.rect.width + 16;
+      const base = open ? 0 : closedX;
+      drawer.style.transform = `translateX(${Math.min(closedX, Math.max(0, base + dx))}px)`;
     }
   });
-  handle.addEventListener(
-    "click",
-    (e) => {
-      if (handle.dataset.swiped) {
-        delete handle.dataset.swiped;
-        e.stopImmediatePropagation();
-      }
-    },
-    true
-  );
+  const endDrag = (e) => {
+    if (!drag) return;
+    const moved = drag.moved;
+    drag = null;
+    drawer.classList.remove("dragging");
+    if (tab.hasPointerCapture(e.pointerId)) tab.releasePointerCapture(e.pointerId);
+    if (Math.abs(moved) > 40) {
+      setOpen(moved < 0); // left / up opens, right / down closes
+      tab.dataset.dragged = "1"; // the click that follows is not a toggle
+    } else {
+      drawer.style.transform = "";
+    }
+  };
+  tab.addEventListener("pointerup", endDrag);
+  tab.addEventListener("pointercancel", endDrag);
+  tab.addEventListener("click", () => {
+    if (tab.dataset.dragged) {
+      delete tab.dataset.dragged;
+      return;
+    }
+    setOpen(!open);
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && open) setOpen(false);
+  });
 
   window.Layout = {
-    /** Show the forecast: unfold the panel (desktop) or open the sheet (phone). */
-    reveal(target) {
-      if (phone.matches) setSheet(true);
-      else setCollapsed(false);
-      if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+    /** Slide the forecast out (and optionally scroll to a part of it). */
+    open(target) {
+      drawer.hidden = false;
+      requestAnimationFrame(() => {
+        setOpen(true);
+        if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
     },
-    /** One-line summary shown on the closed sheet, e.g. "臺北 ⛅ 21°C". */
+    close() {
+      setOpen(false);
+    },
+    isOpen: () => open,
+    /** Show the drawer's tab once there is something to show. */
+    ready() {
+      drawer.hidden = false;
+    },
+    /** One-line summary on the tab, e.g. "臺北 21°C". */
     peek(text) {
-      label.dataset.peek = `${text} · 往上滑看預報`;
-      if (!panel.classList.contains("sheet-open")) label.textContent = label.dataset.peek;
+      label.textContent = text;
     },
     isPhone: () => phone.matches,
+    body,
   };
 })();

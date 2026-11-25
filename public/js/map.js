@@ -157,7 +157,7 @@
         const m = L.marker([y, x], { keyboard: false, zIndexOffset: f.properties.ring === 1 ? 100 : 0 });
         m.wx = { ...f.properties, name: "" };
         m.bindTooltip(`${f.properties.text}`, { direction: "top", offset: [0, -22] });
-        m.on("click", () => map.fire("click", { latlng: m.getLatLng() })); // same as clicking the map there
+        m.on("click", () => map.fire("click", { latlng: m.getLatLng(), force: true })); // look up that spot
         draw(m);
         layer.addLayer(m);
         return m;
@@ -250,7 +250,7 @@
 
     map.on("click", (e) => {
       const { lat, lng } = e.latlng.wrap(); // keep longitude in -180..180 after panning around the globe
-      onPick(lat, lng);
+      onPick(lat, lng, Boolean(e.force));
     });
 
     return {
