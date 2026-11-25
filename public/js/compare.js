@@ -144,8 +144,11 @@
     const container = map.getContainer();
     const root = el("div", "swipe");
     const line = el("div", "swipe-line");
-    const handle = el("button", "swipe-handle", "⇆");
+    const handle = el("button", "swipe-handle");
     handle.type = "button";
+    // A drawn double arrow (↔), so it sits exactly in the middle whatever the font
+    handle.innerHTML =
+      '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M7 7l-4 5 4 5M17 7l4 5-4 5"/></svg>';
     handle.setAttribute("aria-label", "拖曳比較災前與災後，也可以用左右方向鍵");
     const leftTag = el("span", "swipe-tag swipe-tag-left");
     const rightTag = el("span", "swipe-tag swipe-tag-right");
