@@ -119,3 +119,30 @@ test("city layer is valid GeoJSON built from one multi-location request", async 
   assert.deepEqual(taipei.geometry.coordinates, [121.5654, 25.033], "GeoJSON is [lon, lat]");
   assert.equal(taipei.properties.icon, "☀️");
 });
+
+const { createWaybackCatalog, toReleases, CONFIG_URL } = require("../src/services/wayback");
+
+test("toReleases turns the Wayback catalog into a newest-first list", () => {
+  const list = toReleases({
+    10: { itemTitle: "World Imagery (Wayback 2024-03-07)" },
+    20: { itemTitle: "World Imagery (Wayback 2026-11-18)" },
+    bad: { itemTitle: "World Imagery (Wayback 2025-01-01)" },
+    30: { itemTitle: "no date here" },
+  });
+  assert.deepEqual(list, [
+    { release: 20, date: "2026-11-18" },
+    { release: 10, date: "2024-03-07" },
+  ]);
+  assert.deepEqual(toReleases(null), []);
+});
+
+test("wayback catalog is fetched once and then served from the cache", async () => {
+  const fetchImpl = fakeFetch({ [CONFIG_URL]: { 3692: { itemTitle: "World Imagery (Wayback 2026-11-18)" } } });
+  const releases = createWaybackCatalog({ fetchImpl, cache: new TTLCache() });
+  const first = await releases();
+  const second = await releases();
+  assert.equal(first.releases[0].release, 3692);
+  assert.match(first.tileUrl, /\{release\}\/\{z\}\/\{y\}\/\{x\}$/);
+  assert.equal(second, first);
+  assert.equal(fetchImpl.calls.length, 1);
+});

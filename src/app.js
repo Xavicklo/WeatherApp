@@ -8,6 +8,7 @@ const { createForecaster } = require("./services/forecast");
 const { createReverseGeocoder } = require("./services/reverseGeocode");
 const { createCityLayer } = require("./services/cities");
 const { createWeatherController } = require("./controllers/weather");
+const { createWaybackCatalog } = require("./services/wayback");
 
 const AUTHOR = "Xavick Lo";
 
@@ -21,6 +22,7 @@ function createApp(deps = {}) {
   const forecast = deps.forecast || createForecaster({ cache });
   const reverseGeocode = deps.reverseGeocode || createReverseGeocoder({ cache });
   const cityLayer = deps.cityLayer || createCityLayer({ cache });
+  const waybackReleases = deps.waybackReleases || createWaybackCatalog({ cache });
   const handleWeather = createWeatherController({ geocode, forecast, reverseGeocode, logger: deps.logger });
 
   const app = express();
@@ -73,6 +75,15 @@ function createApp(deps = {}) {
       res.type("application/geo+json").send(JSON.stringify(await cityLayer()));
     } catch (err) {
       res.status(err.status || 500).json({ error: "城市溫度圖層暫時無法使用。" });
+    }
+  });
+
+  // Archived satellite-imagery releases for the before/after swipe comparison
+  app.get("/api/imagery/wayback", async (req, res) => {
+    try {
+      res.json(await waybackReleases());
+    } catch (err) {
+      res.status(err.status || 500).json({ error: "歷史衛星影像清單暫時無法使用。" });
     }
   });
 

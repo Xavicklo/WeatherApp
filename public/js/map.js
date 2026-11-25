@@ -146,6 +146,7 @@
       .layers(bases, { 地名與行政界線: labels, 城市即時氣溫: cities, 雷達回波: radar }, { collapsed: window.innerWidth < 900 })
       .addTo(map);
     new FullscreenControl().addTo(map);
+    if (window.ImageryCompare) window.ImageryCompare.attach(map); // 災前災後比對（swipe）
     L.control.scale({ imperial: false }).addTo(map);
 
     let marker = null;
