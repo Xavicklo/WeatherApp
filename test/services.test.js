@@ -182,3 +182,31 @@ test("nearby makes one upstream call and returns GeoJSON with kinds", async () =
   assert.equal(geo.features[0].properties.text, "中雨");
   assert.equal(geo.features[1].properties.kind, "clear");
 });
+
+const { fromNominatim } = require("../src/services/geocode");
+const NOMI = "https://nominatim.openstreetmap.org/search";
+
+test("Chinese names go to Nominatim first, preferring Taiwan", async () => {
+  const tucheng = [{ lat: "24.97", lon: "121.44", name: "土城區", address: { suburb: "土城區", city: "新北市", country: "臺灣", country_code: "tw" } }];
+  const fetchImpl = fakeFetch({ [NOMI]: tucheng });
+  const place = await createGeocoder({ fetchImpl })("土城");
+  assert.equal(place.location, "土城區, 新北市, 臺灣");
+  assert.equal(place.latitude, 24.97);
+  assert.match(fetchImpl.calls[0], /countrycodes=tw/);
+});
+
+test("Latin names fall back to Nominatim when Open-Meteo finds nothing", async () => {
+  const fetchImpl = fakeFetch({ [GEO]: { results: [] }, [NOMI]: [{ lat: "1", lon: "2", name: "Somewhere", address: { country: "Nowhere" } }] });
+  const place = await createGeocoder({ fetchImpl })("Somewhere");
+  assert.equal(place.location, "Somewhere, Nowhere");
+  assert.equal(fetchImpl.calls.length, 2);
+});
+
+test("fromNominatim does not repeat the place name as its region", () => {
+  assert.equal(fromNominatim({ lat: "25", lon: "121", name: "臺北市", address: { city: "臺北市", country: "臺灣" } }).location, "臺北市, 臺灣");
+});
+
+test("fromNominatim prefers the district over a station with the same name", () => {
+  const r = { lat: "24.97", lon: "121.44", name: "土城", address: { railway: "土城", suburb: "土城區", city: "新北市", country: "臺灣" } };
+  assert.equal(fromNominatim(r).location, "土城區, 新北市, 臺灣");
+});
