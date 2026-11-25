@@ -86,11 +86,12 @@
   window.Layout = {
     /** Slide the forecast out (and optionally scroll to a part of it). */
     open(target) {
-      drawer.hidden = false;
-      requestAnimationFrame(() => {
-        setOpen(true);
-        if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
+      if (drawer.hidden) {
+        drawer.hidden = false;
+        void drawer.offsetWidth; // apply the closed position first so the slide-in animates
+      }
+      setOpen(true);
+      if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
     },
     close() {
       setOpen(false);
