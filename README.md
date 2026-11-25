@@ -10,7 +10,7 @@ Built with **Node.js + Express + Handlebars** on the server and **plain JavaScri
 - **Interactive map (Leaflet)**
   - Click any point to get its weather. The point is reverse-geocoded to a place name with OpenStreetMap Nominatim.
   - Base-layer switcher: Satellite (Esri World Imagery, default) with a place-name/boundary overlay, Streets (OSM), Light (Esri Light Gray) or Topo (OpenTopoMap); full-screen button
-  - Optional **Mapbox** base maps (Outdoors, Dark) when `MAPBOX_TOKEN` is set: Mapbox styles loaded as raster tiles into Leaflet
+  - Optional **Mapbox** base maps (Satellite Streets, Light) when `MAPBOX_TOKEN` is set: Mapbox styles loaded as raster tiles into Leaflet
   - **GeoJSON point layer** showing the current temperature in 14 Taiwanese cities (`/api/cities`), fetched with a single multi-location upstream request
   - Rain-radar overlay (RainViewer tiles) and a metric scale bar
   - **Before/after satellite swipe (災前災後比對)**: drag a divider to compare two dates of imagery. It is a small hand-written Leaflet control: each date sits in its own map pane, clipped with CSS `clip` at the divider and recomputed on every move/zoom. Sources: NASA GIBS HLS (daily, 30 m), EOX Sentinel-2 cloudless (yearly, 10 m) and Esri World Imagery Wayback (archived releases). Presets show the 2025 Mataian Creek landslide-dammed lake and the flood it caused downstream in Guangfu.

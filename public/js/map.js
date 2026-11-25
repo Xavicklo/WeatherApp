@@ -28,8 +28,9 @@
   function createBaseLayers(mapboxToken) {
     const mapbox = mapboxToken
       ? {
-          "Mapbox 戶外地形": mapboxLayer("outdoors-v12", mapboxToken),
-          "Mapbox 深色": mapboxLayer("dark-v11", mapboxToken),
+          // The two Mapbox styles closest to 瑞竣's work: imagery with labels, and a quiet base for data
+          "Mapbox 衛星混合圖": mapboxLayer("satellite-streets-v12", mapboxToken),
+          "Mapbox 淺色底圖": mapboxLayer("light-v11", mapboxToken),
         }
       : {};
     return {
@@ -249,6 +250,11 @@
     const bases = createBaseLayers(mapboxToken);
     bases.衛星影像.addTo(map); // satellite by default: closest to remote-sensing imagery
     const labels = createLabelsLayer().addTo(map);
+    // Mapbox styles carry their own place names: hide the Esri label overlay on them, bring it back on 衛星影像.
+    map.on("baselayerchange", (e) => {
+      if (e.name.startsWith("Mapbox")) labels.remove();
+      else if (e.name === "衛星影像" && !map.hasLayer(labels)) labels.addTo(map);
+    });
 
     const cities = createCityLayer(getUnit).addTo(map);
     const refreshLabels = () => applyMinZoom(map, cities);
