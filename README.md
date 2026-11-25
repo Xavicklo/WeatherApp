@@ -10,6 +10,7 @@ Built with **Node.js + Express + Handlebars** on the server and **plain JavaScri
 - **Interactive map (Leaflet)**
   - Click any point to get its weather. The point is reverse-geocoded to a place name with OpenStreetMap Nominatim.
   - Base-layer switcher: Satellite (Esri World Imagery, default) with a place-name/boundary overlay, Streets (OSM), Light (Esri Light Gray) or Topo (OpenTopoMap); full-screen button
+  - Optional **Mapbox** base maps (Outdoors, Dark) when `MAPBOX_TOKEN` is set: Mapbox styles loaded as raster tiles into Leaflet
   - **GeoJSON point layer** showing the current temperature in 14 Taiwanese cities (`/api/cities`), fetched with a single multi-location upstream request
   - Rain-radar overlay (RainViewer tiles) and a metric scale bar
 - Current conditions, a **24-hour temperature chart** (hand-drawn SVG) and a **7-day forecast** with temperature-range bars
@@ -63,6 +64,8 @@ npm run dev     # restarts on changes
 # or
 npm start       # http://localhost:3000
 ```
+
+Optional: copy `.env.example` to `.env` and add a Mapbox public token (`MAPBOX_TOKEN=pk...`) to show the Mapbox base maps. `.env` is read automatically on Node 20.12+; on older versions run `MAPBOX_TOKEN=pk... npm start`.
 
 ## Deploy
 

@@ -10,7 +10,28 @@
 
   const TAIWAN = [23.7, 121];
 
-  function createBaseLayers() {
+  /**
+   * Mapbox styles drawn as raster tiles, so they plug straight into Leaflet like any other
+   * base map (Leaflet only displays tiles; where they come from is up to us).
+   * 512px tiles with zoomOffset -1 is Mapbox's recommended setup for Leaflet.
+   */
+  function mapboxLayer(style, token) {
+    return L.tileLayer(`https://api.mapbox.com/styles/v1/mapbox/${style}/tiles/512/{z}/{x}/{y}@2x?access_token=${token}`, {
+      tileSize: 512,
+      zoomOffset: -1,
+      maxZoom: 20,
+      attribution:
+        '&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    });
+  }
+
+  function createBaseLayers(mapboxToken) {
+    const mapbox = mapboxToken
+      ? {
+          "Mapbox 戶外地形": mapboxLayer("outdoors-v12", mapboxToken),
+          "Mapbox 深色": mapboxLayer("dark-v11", mapboxToken),
+        }
+      : {};
     return {
       街道圖: L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
@@ -28,6 +49,7 @@
         "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
         { maxZoom: 18, attribution: "Imagery &copy; Esri, Maxar, Earthstar Geographics" }
       ),
+      ...mapbox,
     };
   }
 
@@ -132,7 +154,8 @@
 
   function init(containerId, { onPick, getUnit }) {
     const map = L.map(containerId, { zoomControl: true, worldCopyJump: true }).setView(TAIWAN, 7);
-    const bases = createBaseLayers();
+    const mapboxToken = document.getElementById(containerId)?.dataset.mapboxToken || "";
+    const bases = createBaseLayers(mapboxToken);
     bases.衛星影像.addTo(map); // satellite by default: closest to remote-sensing imagery
     const labels = createLabelsLayer().addTo(map);
 

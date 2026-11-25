@@ -21,6 +21,9 @@ function createApp(deps = {}) {
   const forecast = deps.forecast || createForecaster({ cache });
   const reverseGeocode = deps.reverseGeocode || createReverseGeocoder({ cache });
   const cityLayer = deps.cityLayer || createCityLayer({ cache });
+  // Mapbox public token (pk.…). It is meant to be used in the browser; protect it with
+  // URL restrictions in the Mapbox account. Without one, the Mapbox base maps are just hidden.
+  const mapboxToken = deps.mapboxToken ?? process.env.MAPBOX_TOKEN ?? "";
   const handleWeather = createWeatherController({ geocode, forecast, reverseGeocode, logger: deps.logger });
 
   const app = express();
@@ -55,7 +58,7 @@ function createApp(deps = {}) {
   });
 
   // Pages
-  app.get("/", (req, res) => res.render("index", { title: "天氣查詢" }));
+  app.get("/", (req, res) => res.render("index", { title: "天氣查詢", mapboxToken }));
   app.get("/about", (req, res) => res.render("about", { title: "關於" }));
   app.get("/help", (req, res) => res.render("help", { title: "使用說明" }));
 
