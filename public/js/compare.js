@@ -59,6 +59,7 @@
   ];
 
   let waybackPromise = null;
+  let foldOnMapClick = () => false; // set by attach(); true when a map click folded the panel
   function loadWayback() {
     if (!waybackPromise) {
       waybackPromise = fetch("/api/imagery/wayback")
@@ -285,7 +286,13 @@
 
         const panel = el("div", "cmp-panel");
         panel.hidden = true;
-        panel.appendChild(el("h3", null, "災前災後比對"));
+        const head = el("div", "cmp-head");
+        const fold = el("button", "cmp-fold", "✕");
+        fold.type = "button";
+        fold.title = "收起面板（比對會繼續）";
+        fold.setAttribute("aria-label", "收起面板，繼續比對");
+        head.append(el("h3", null, "災前災後比對"), fold);
+        panel.appendChild(head);
 
         const presetSelect = el("select", "cmp-preset");
         presetSelect.setAttribute("aria-label", "預設案例");
@@ -306,7 +313,8 @@
         const close = el("button", "cmp-close", "關閉比對");
         close.type = "button";
 
-        panel.append(presetSelect, note, leftPicker.el, rightPicker.el, status, close);
+        const tip = el("p", "cmp-tip", "點地圖任一處可收起面板，拖曳中間的拉桿比較；再按 🛰️ 可打開面板。");
+        panel.append(presetSelect, note, leftPicker.el, rightPicker.el, status, tip, close);
         wrap.appendChild(panel);
 
         L.DomEvent.disableClickPropagation(wrap);
@@ -339,6 +347,7 @@
         async function applyPreset(id) {
           const p = PRESETS.find((x) => x.id === id);
           if (!p) return;
+          presetSelect.value = p.id;
           note.textContent = p.note;
           await Promise.all([leftPicker.set(p.left), rightPicker.set(p.right)]);
           map.flyTo(p.center, p.zoom, { duration: 1 });
@@ -379,10 +388,20 @@
         L.DomEvent.on(button, "click", (e) => {
           L.DomEvent.preventDefault(e);
           if (!active) return open();
-          panel.hidden = !panel.hidden;
-          button.setAttribute("aria-expanded", String(!panel.hidden));
+          setPanel(panel.hidden);
         });
         close.addEventListener("click", shut);
+        const setPanel = (show) => {
+          panel.hidden = !show;
+          button.setAttribute("aria-expanded", String(show));
+        };
+        fold.addEventListener("click", () => setPanel(false));
+        // While comparing, a click on the map just folds the panel away (map.js asks first).
+        foldOnMapClick = () => {
+          if (!active || panel.hidden) return false;
+          setPanel(false);
+          return true;
+        };
         presetSelect.addEventListener("change", () => {
           if (presetSelect.value !== "custom") applyPreset(presetSelect.value);
         });
@@ -393,5 +412,5 @@
     new Control().addTo(map);
   }
 
-  window.ImageryCompare = { attach, PRESETS };
+  window.ImageryCompare = { attach, PRESETS, handleMapClick: () => foldOnMapClick() };
 })();

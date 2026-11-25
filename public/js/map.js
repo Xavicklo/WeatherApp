@@ -259,6 +259,11 @@
     map.on("preclick", () => (swallowClick = popupOpen));
 
     map.on("click", (e) => {
+      // The before/after panel folds away first, so the swipe divider can be dragged.
+      if (window.ImageryCompare && window.ImageryCompare.handleMapClick()) {
+        swallowClick = false;
+        return;
+      }
       if (swallowClick) {
         swallowClick = false;
         if (onDismiss) onDismiss(); // e.g. also fold the forecast drawer away
