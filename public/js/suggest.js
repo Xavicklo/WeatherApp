@@ -98,6 +98,13 @@
       active = -1;
     }
 
+    // Rough distance in km (equirectangular is plenty for ranking)
+    const km = (a, b) => {
+      const x = ((b.lon - a.lon) * Math.PI * 6371 * Math.cos(((a.lat + b.lat) / 2) * Math.PI / 180)) / 180;
+      const y = ((b.lat - a.lat) * Math.PI * 6371) / 180;
+      return Math.hypot(x, y);
+    };
+
     function toItem(f) {
       const p = f.properties || {};
       const [lon, lat] = f.geometry.coordinates;
@@ -127,10 +134,15 @@
         if (!r.ok) return close();
         const data = await r.json();
         const seen = new Set();
+        // Photon's location bias is weak, so rank places within ~500 km of the map first
+        // (keeping Photon's own order inside each group): 政治 → 政治大學 before a school in Wuhan.
         const results = (data.features || [])
           .filter((f) => f.properties && f.properties.name && !SKIP.has(f.properties.osm_value))
           .map(toItem)
           .filter((it) => !seen.has(it.label) && seen.add(it.label))
+          .map((it, i) => ({ it, i, near: km(bias, it) < 500 ? 0 : 1 }))
+          .sort((a, b) => a.near - b.near || a.i - b.i)
+          .map((x) => x.it)
           .slice(0, MAX);
         cache.set(q, results);
         if (input.value.trim() === q) render(results);
