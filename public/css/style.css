@@ -583,7 +583,7 @@ button.small { padding: 6px 12px; font-size: 0.9rem; }
   .app .leaflet-top { top: calc(var(--head-h, 150px) + 8px); }
   .app .leaflet-bottom { bottom: 56px; }
   .app .swipe-tag { bottom: 68px; }
-  .app .cmp-panel { max-height: calc(100dvh - var(--head-h, 150px) - 110px); }
+  .app .cmp-panel { max-height: min(50vh, calc(100dvh - var(--head-h, 150px) - 110px)); }
   .swipe-tag { bottom: 26px; font-size: 12px; }
 }
 

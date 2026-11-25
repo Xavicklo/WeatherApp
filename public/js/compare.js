@@ -308,8 +308,12 @@
 
         const status = el("p", "cmp-status");
         status.setAttribute("role", "status");
-        const leftPicker = createSidePicker("左：災前", () => update(true));
-        const rightPicker = createSidePicker("右：災後", () => update(true));
+        // On phones the panel covers most of the map, so it folds itself after a choice.
+        const foldOnPhone = () => {
+          if (window.innerWidth <= 640) setPanel(false);
+        };
+        const leftPicker = createSidePicker("左：災前", () => update(true).then(foldOnPhone));
+        const rightPicker = createSidePicker("右：災後", () => update(true).then(foldOnPhone));
         const close = el("button", "cmp-close", "關閉比對");
         close.type = "button";
 
@@ -403,7 +407,7 @@
           return true;
         };
         presetSelect.addEventListener("change", () => {
-          if (presetSelect.value !== "custom") applyPreset(presetSelect.value);
+          if (presetSelect.value !== "custom") applyPreset(presetSelect.value).then(foldOnPhone);
         });
         return wrap;
       },
