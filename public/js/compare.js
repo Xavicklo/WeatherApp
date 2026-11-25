@@ -117,7 +117,9 @@
     return L.tileLayer(wayback.tileUrl.replace("{release}", spec.value), {
       ...common,
       maxNativeZoom: 19,
-      ...(minNativeZoom ? { minNativeZoom } : {}),
+      // Drawing lower zooms from detailed tiles: allow it ONE level down only (4x the tiles).
+      // Without minZoom the layer would fetch level-16 tiles for a whole country view and hang the page.
+      ...(minNativeZoom ? { minNativeZoom, minZoom: minNativeZoom - 1 } : {}),
       attribution: 'Imagery &copy; Esri <a href="https://livingatlas.arcgis.com/wayback/" target="_blank">Wayback</a>',
     });
   }
