@@ -8,8 +8,11 @@
 (function () {
   "use strict";
 
-  const CLOUD = "M14 38h22a8 8 0 0 0 0-16 11 11 0 0 0-21.2 3.4A6.4 6.4 0 0 0 14 38z";
-  const SMALL_CLOUD = "M20 40h17a6 6 0 0 0 0-12 8.5 8.5 0 0 0-16.4 2.6A4.8 4.8 0 0 0 20 40z";
+  // A three-puff cloud; the older single-arc shape looked like a rounded polygon at 40 px.
+  const CLOUD = "M14.5 38A6.5 6.5 0 0 1 13 25.2 8.5 8.5 0 0 1 28.8 20.5 7.5 7.5 0 0 1 36.6 26.4 6 6 0 0 1 35.5 38z";
+  // Smaller copies of the same shape (wrapped in a <g transform>, so CSS animations on the path still work)
+  const SMALL = "translate(8.5 11) scale(0.74)";
+  const BACK = "translate(17 1.6) scale(0.62)";
 
   const sun = (cx, cy, r) => {
     const rays = [];
@@ -26,7 +29,8 @@
   const moon = (cx, cy) =>
     `<path class="wx-moon" d="M${cx + 4} ${cy - 11}a11 11 0 1 0 8 17 9 9 0 0 1-8-17z"/>` +
     `<path class="wx-star" d="M${cx + 12} ${cy - 12}l1.2 2.6 2.8.4-2 2 .5 2.8-2.5-1.3-2.5 1.3.5-2.8-2-2 2.8-.4z"/>`;
-  const cloud = (cls = "wx-cloud", d = CLOUD) => `<path class="${cls}" d="${d}"/>`;
+  const cloud = (cls = "wx-cloud", transform = "") =>
+    transform ? `<g transform="${transform}"><path class="${cls}" d="${CLOUD}"/></g>` : `<path class="${cls}" d="${CLOUD}"/>`;
   const drops = (n, cls) => {
     const out = [];
     for (let i = 0; i < n; i++) {
@@ -43,9 +47,9 @@
   const ART = {
     clear: () => sun(24, 24, 9),
     "clear-night": () => moon(22, 26),
-    partly: () => `<g transform="translate(-4 -6)">${sun(20, 20, 7)}</g>${cloud("wx-cloud wx-drift", SMALL_CLOUD)}`,
-    "partly-night": () => `<g transform="translate(-5 -8) scale(.8)">${moon(22, 26)}</g>${cloud("wx-cloud wx-drift", SMALL_CLOUD)}`,
-    cloudy: () => `${cloud("wx-cloud wx-back wx-drift-slow", "M24 26h15a6 6 0 0 0 0-12 8 8 0 0 0-15.4 2.4A4.6 4.6 0 0 0 24 26z")}${cloud("wx-cloud wx-drift")}`,
+    partly: () => `<g transform="translate(-4 -6)">${sun(20, 20, 7)}</g>${cloud("wx-cloud wx-drift", SMALL)}`,
+    "partly-night": () => `<g transform="translate(-5 -8) scale(.8)">${moon(22, 26)}</g>${cloud("wx-cloud wx-drift", SMALL)}`,
+    cloudy: () => `${cloud("wx-cloud wx-back wx-drift-slow", BACK)}${cloud("wx-cloud wx-drift")}`,
     fog: () =>
       `${cloud("wx-cloud wx-grey")}<g class="wx-fog"><line x1="8" y1="42" x2="34" y2="42"/><line x1="14" y1="46" x2="40" y2="46"/></g>`,
     drizzle: () => `${cloud("wx-cloud wx-grey")}${drops(3, "wx-drop wx-slow")}`,
