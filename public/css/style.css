@@ -399,7 +399,8 @@ body.app { height: 100vh; height: 100dvh; overflow: hidden; }
 .panel input[type="search"]::placeholder { color: rgba(255, 255, 255, 0.72); }
 .panel input[type="search"]:focus-visible { outline: none; }
 .panel .search-form:focus-within { border-color: #fff; box-shadow: 0 0 0 3px rgba(168, 224, 99, 0.55); }
-.panel .search-form button { border-radius: 999px; padding: 8px 16px; }
+.panel .search-form button { border-radius: 999px; padding: 8px 16px; background: #fff; color: #4338ca; font-weight: 700; box-shadow: 0 2px 8px rgba(30, 20, 90, 0.25); }
+.panel .search-form button:hover { background: #eef0ff; filter: none; }
 .panel .toolbar { margin-top: 10px; }
 button.small { padding: 6px 12px; font-size: 0.9rem; }
 .panel .recent { margin: 10px 0 0; }
@@ -422,7 +423,7 @@ button.small { padding: 6px 12px; font-size: 0.9rem; }
   position: absolute; left: -42px; top: 50%; transform: translateY(-50%);
   width: 42px; padding: 14px 0; border-radius: 14px 0 0 14px;
   display: flex; flex-direction: column; align-items: center; gap: 8px;
-  background: #fff; color: #4338ca; border: 1px solid rgba(67, 56, 202, 0.18);
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.95), rgba(124, 58, 237, 0.95)); color: #fff; border: 0;
   box-shadow: -4px 4px 16px rgba(0, 0, 0, 0.35); touch-action: none; cursor: grab;
 }
 .drawer-tab .grip { display: none; }
