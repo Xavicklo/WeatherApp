@@ -12,6 +12,7 @@ Built with **Node.js + Express + Handlebars** on the server and **plain JavaScri
   - Base-layer switcher: Satellite (Esri World Imagery, default) with a place-name/boundary overlay, Streets (OSM), Light (Esri Light Gray) or Topo (OpenTopoMap); full-screen button
   - **GeoJSON point layer** showing the current temperature in 14 Taiwanese cities (`/api/cities`), fetched with a single multi-location upstream request
   - Rain-radar overlay (RainViewer tiles) and a metric scale bar
+  - **Before/after satellite swipe (災前災後比對)**: drag a divider to compare two dates of imagery. It is a small hand-written Leaflet control: each date sits in its own map pane, clipped with CSS `clip` at the divider and recomputed on every move/zoom. Sources: NASA GIBS HLS (daily, 30 m), EOX Sentinel-2 cloudless (yearly, 10 m) and Esri World Imagery Wayback (archived releases). Presets show the 2025 Mataian Creek landslide-dammed lake and the flood it caused downstream in Guangfu.
 - Current conditions, a **24-hour temperature chart** (hand-drawn SVG) and a **7-day forecast** with temperature-range bars
 - °C / °F toggle, 📍 browser geolocation, and recent searches (saved in localStorage)
 - Shareable URLs (`/?q=Taipei`)
@@ -48,6 +49,7 @@ Design notes:
 | `GET /api/weather?address=Taipei` | Geocode a place and return its forecast |
 | `GET /api/weather?lat=25.03&lon=121.56` | Forecast for coordinates (reverse-geocoded name) |
 | `GET /api/cities` | GeoJSON of Taiwanese cities with their current temperature |
+| `GET /api/imagery/wayback` | Esri Wayback releases (`{ tileUrl, releases: [{ release, date }] }`), cached |
 | `GET /healthz` | Health check |
 
 `/weather?address=` still works for backwards compatibility.
@@ -70,4 +72,4 @@ npm start       # http://localhost:3000
 
 ## Data sources
 
-[Open-Meteo](https://open-meteo.com/) (forecast and geocoding) · [OpenStreetMap Nominatim](https://nominatim.org/) (reverse geocoding) · [Leaflet](https://leafletjs.com/) · map tiles © OpenStreetMap contributors, © Esri, © OpenTopoMap · radar © [RainViewer](https://www.rainviewer.com/)
+[Open-Meteo](https://open-meteo.com/) (forecast and geocoding) · [OpenStreetMap Nominatim](https://nominatim.org/) (reverse geocoding) · [Leaflet](https://leafletjs.com/) · map tiles © OpenStreetMap contributors, © Esri, © OpenTopoMap · radar © [RainViewer](https://www.rainviewer.com/) · imagery: [NASA GIBS / HLS](https://www.earthdata.nasa.gov/data/projects/hls), [Sentinel-2 cloudless](https://s2maps.eu) by EOX (contains modified Copernicus Sentinel data), [Esri Wayback](https://livingatlas.arcgis.com/wayback/)
