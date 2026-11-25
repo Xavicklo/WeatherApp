@@ -56,6 +56,10 @@
       left: { source: "wayback", value: "51127" },
       right: { source: "wayback", value: "13192" },
       labels: ["Esri 高解析 · 2022", "Esri 高解析 · 2025-08"],
+      // Esri only updated the detailed levels (~30 cm, zoom 16+); below that both releases show the
+      // same older imagery. So keep the map at 15+ and draw level 15 from scaled-down level-16 tiles.
+      minZoom: 15,
+      minNativeZoom: 16,
     },
     {
       id: "au-longwood",
@@ -94,7 +98,7 @@
   }
 
   /** Builds the tile layer for one side. */
-  function makeLayer(spec, pane, wayback) {
+  function makeLayer(spec, pane, wayback, minNativeZoom) {
     const common = { pane, maxZoom: 19 };
     if (spec.source === "hls") {
       return L.tileLayer(HLS_URL.replace("{date}", spec.value), {
@@ -113,6 +117,7 @@
     return L.tileLayer(wayback.tileUrl.replace("{release}", spec.value), {
       ...common,
       maxNativeZoom: 19,
+      ...(minNativeZoom ? { minNativeZoom } : {}),
       attribution: 'Imagery &copy; Esri <a href="https://livingatlas.arcgis.com/wayback/" target="_blank">Wayback</a>',
     });
   }
@@ -345,10 +350,27 @@
         L.DomEvent.disableClickPropagation(wrap);
         L.DomEvent.disableScrollPropagation(wrap);
 
+        // Esri Wayback releases usually differ only at the detailed zoom levels.
+        let currentPreset = null;
+        let usesWayback = false;
+        let hlsNote = "";
+        const WAYBACK_DETAIL_ZOOM = 16;
+        function setPreset(p) {
+          currentPreset = p;
+          map.setMinZoom(0);
+        }
+        function updateHint() {
+          if (!active) return;
+          const far = usesWayback && !currentPreset && map.getZoom() < WAYBACK_DETAIL_ZOOM;
+          status.textContent = far ? `Esri 歷史影像的新舊差異通常只在放大後（約 ${WAYBACK_DETAIL_ZOOM} 級以上）才看得到，請放大地圖。` : hlsNote;
+        }
+        map.on("zoomend", updateHint);
+
         async function update(markCustom) {
           if (markCustom) {
             presetSelect.value = "custom";
             note.textContent = "";
+            setPreset(null);
           }
           const l = leftPicker.get();
           const r = rightPicker.get();
@@ -362,9 +384,15 @@
               return;
             }
           }
-          status.textContent = l.source === "hls" || r.source === "hls" ? "HLS 是單日影像，有雲或缺資料的地方會透出底圖。" : "";
+          usesWayback = l.source === "wayback" || r.source === "wayback";
+          hlsNote = l.source === "hls" || r.source === "hls" ? "HLS 是單日影像，有雲或缺資料的地方會透出底圖。" : "";
+          updateHint();
           layers.forEach((layer) => layer.remove());
-          layers = [makeLayer(l, "compareLeft", wayback).addTo(map), makeLayer(r, "compareRight", wayback).addTo(map)];
+          const nativeMin = currentPreset && currentPreset.minNativeZoom;
+          layers = [
+            makeLayer(l, "compareLeft", wayback, nativeMin).addTo(map),
+            makeLayer(r, "compareRight", wayback, nativeMin).addTo(map),
+          ];
           swipe.setLabels(describe(l, wayback), describe(r, wayback));
           clip();
         }
@@ -374,8 +402,11 @@
           if (!p) return;
           presetSelect.value = p.id;
           note.textContent = p.note;
+          setPreset(null); // lift the previous preset's zoom limit before flying away
+          currentPreset = p;
           await Promise.all([leftPicker.set(p.left), rightPicker.set(p.right)]);
           map.flyTo(p.center, p.zoom, { duration: 1 });
+          if (p.minZoom) map.once("moveend", () => currentPreset === p && map.setMinZoom(p.minZoom));
           await update(false);
           if (p.labels) swipe.setLabels(p.labels[0], p.labels[1]); // say when the imagery was taken, not the release date
           swipe.reset();
@@ -410,6 +441,7 @@
           swipe.remove();
           swipe = null;
           left.style.clip = right.style.clip = "";
+          setPreset(null);
           document.dispatchEvent(new CustomEvent("compare:change", { detail: { active: false } }));
         }
         openCompare = open;
