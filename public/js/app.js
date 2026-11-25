@@ -332,7 +332,7 @@
     const popup = el("div", { class: "map-popup" }, [
       el("strong", { class: "popup-title", text: data.location }),
       el("div", { class: "popup-now" }, [
-        el("span", { class: "popup-icon", text: c.icon }),
+        wxIcon("popup-icon", c, 40),
         el("span", { class: "popup-temp", text: F.formatTemp(c.temperature, u) }),
         el("span", { class: "popup-cond", text: c.text }),
       ]),
