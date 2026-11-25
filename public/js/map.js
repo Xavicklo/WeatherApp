@@ -96,6 +96,7 @@
       },
       onEachFeature(feature, marker) {
         marker.bindTooltip(`${feature.properties.name} · ${feature.properties.text}`, { direction: "top", offset: [0, -14] });
+        marker.on("click", () => pinClick(marker.getLatLng(), feature.properties.name));
       },
     });
     layer.refreshUnits = () =>
@@ -183,7 +184,7 @@
         const m = L.marker([y, x], { keyboard: false, zIndexOffset: f.properties.ring === 1 ? 100 : 0 });
         m.wx = { ...f.properties, name: "" };
         m.bindTooltip(`${f.properties.text}`, { direction: "top", offset: [0, -22] });
-        m.on("click", () => pinClick(m.getLatLng())); // same rules as a map click
+        m.on("click", () => pinClick(m.getLatLng(), m.wx.name)); // a pin is a deliberate pick: show its forecast
         draw(m);
         layer.addLayer(m);
         return m;
@@ -244,7 +245,7 @@
     });
   }
 
-  function init(containerId, { onPick, getUnit, onDismiss }) {
+  function init(containerId, { onPick, onPin, getUnit, onDismiss }) {
     const map = L.map(containerId, { zoomControl: true, worldCopyJump: true }).setView(TAIWAN, 7);
     const mapboxToken = document.getElementById(containerId)?.dataset.mapboxToken || "";
     const bases = createBaseLayers(mapboxToken);
@@ -302,13 +303,11 @@
       const { lat, lng } = e.latlng.wrap(); // keep longitude in -180..180 after panning around the globe
       onPick(lat, lng);
     });
-    pinClick = (latlng) => {
-      if (popupOpen) {
-        map.closePopup();
-        if (onDismiss) onDismiss();
-        return;
-      }
-      onPick(latlng.lat, latlng.lng);
+    // Unlike an empty spot on the map, a weather pin is a deliberate target: always look it up
+    // and slide the forecast drawer out.
+    pinClick = (latlng, name) => {
+      if (onPin) onPin(latlng.lat, latlng.lng, name);
+      else onPick(latlng.lat, latlng.lng);
     };
 
     return {

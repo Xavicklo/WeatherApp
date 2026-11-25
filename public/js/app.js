@@ -311,6 +311,11 @@
           if (window.Layout && window.Layout.isOpen()) return window.Layout.close();
           load({ lat: lat.toFixed(4), lon: lon.toFixed(4) }, F.formatCoord(lat, lon));
         },
+        onPin: (lat, lon, name) => {
+          const params = { lat: lat.toFixed(4), lon: lon.toFixed(4) };
+          if (name) params.name = name;
+          load(params, name || F.formatCoord(lat, lon), { open: true });
+        },
       });
     }
   } catch (err) {
