@@ -340,7 +340,7 @@ button.ghost {
 .wordmark { display: flex; align-items: center; gap: 10px; text-decoration: none; color: #fff; margin-right: auto; }
 .wm-badge {
   flex: none; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center;
-  background: radial-gradient(circle at 30% 28%, #6fd3ff 0%, #2a6fd6 55%, #14237a 100%);
+  background: radial-gradient(circle at 30% 28%, #a5b4fc 0%, #6366f1 50%, #3b0f7a 100%);
   box-shadow: 0 4px 14px rgba(0, 0, 40, 0.45), inset 0 0 0 2px rgba(255, 255, 255, 0.25);
 }
 .wm-rays { transform-origin: 19px 19px; animation: wm-spin 24s linear infinite; }
@@ -383,7 +383,8 @@ body.app { height: 100vh; height: 100dvh; overflow: hidden; }
 }
 .panel-head {
   padding: 14px 16px 12px;
-  background: linear-gradient(120deg, rgba(28, 181, 224, 0.78) 0%, rgba(0, 0, 70, 0.85) 100%);
+  /* blue-violet, so it reads differently from Travel Advisor's cyan-navy */
+  background: linear-gradient(120deg, rgba(59, 130, 246, 0.85) 0%, rgba(99, 102, 241, 0.88) 45%, rgba(124, 58, 237, 0.9) 100%);
   -webkit-backdrop-filter: blur(14px) saturate(1.6); backdrop-filter: blur(14px) saturate(1.6);
 }
 .panel-top { display: flex; align-items: center; gap: 10px; }
@@ -421,7 +422,7 @@ button.small { padding: 6px 12px; font-size: 0.9rem; }
   position: absolute; left: -42px; top: 50%; transform: translateY(-50%);
   width: 42px; padding: 14px 0; border-radius: 14px 0 0 14px;
   display: flex; flex-direction: column; align-items: center; gap: 8px;
-  background: linear-gradient(180deg, rgba(28, 181, 224, 0.95), rgba(0, 0, 70, 0.95));
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.95), rgba(124, 58, 237, 0.95));
   box-shadow: -4px 4px 16px rgba(0, 0, 0, 0.35); color: #fff; touch-action: none; cursor: grab;
 }
 .drawer-tab .grip { display: none; }
