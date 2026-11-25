@@ -220,7 +220,7 @@
     });
   }
 
-  function init(containerId, { onPick, getUnit }) {
+  function init(containerId, { onPick, getUnit, onDismiss }) {
     const map = L.map(containerId, { zoomControl: true, worldCopyJump: true }).setView(TAIWAN, 7);
     const bases = createBaseLayers();
     bases.衛星影像.addTo(map); // satellite by default: closest to remote-sensing imagery
@@ -261,13 +261,18 @@
     map.on("click", (e) => {
       if (swallowClick) {
         swallowClick = false;
+        if (onDismiss) onDismiss(); // e.g. also fold the forecast drawer away
         return;
       }
       const { lat, lng } = e.latlng.wrap(); // keep longitude in -180..180 after panning around the globe
       onPick(lat, lng);
     });
     pinClick = (latlng) => {
-      if (popupOpen) return map.closePopup();
+      if (popupOpen) {
+        map.closePopup();
+        if (onDismiss) onDismiss();
+        return;
+      }
       onPick(latlng.lat, latlng.lng);
     };
 
@@ -279,7 +284,17 @@
         else marker.setLatLng(latlng);
         marker.wx = { ...(info || {}), main: true };
         marker.setIcon(info ? wxIcon(marker.wx, getUnit()) : new L.Icon.Default());
-        marker.bindPopup(content, { maxWidth: 320, minWidth: 240 }).openPopup();
+        // Keep the popup clear of the floating search panel (top-left; the whole top on phones).
+        const phone = window.innerWidth <= 640;
+        const headH = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--head-h"), 10) || 0;
+        marker
+          .bindPopup(content, {
+            maxWidth: 320,
+            minWidth: 240,
+            autoPanPaddingTopLeft: L.point(phone ? 10 : 440, phone ? headH + 20 : 20),
+            autoPanPaddingBottomRight: L.point(20, phone ? 70 : 20),
+          })
+          .openPopup();
         map.flyTo(latlng, Math.max(map.getZoom(), 11), { duration: 0.8 });
         nearby.load(lat, lon, info && info.name);
       },

@@ -305,6 +305,7 @@
     if (window.WeatherMap) {
       map = window.WeatherMap.init("map", {
         getUnit: () => state.unit,
+        onDismiss: () => window.Layout && window.Layout.close(),
         onPick: (lat, lon) => {
           // With the forecast drawer open, a click on the map just closes it.
           if (window.Layout && window.Layout.isOpen()) return window.Layout.close();
