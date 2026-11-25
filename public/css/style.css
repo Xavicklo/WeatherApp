@@ -534,18 +534,18 @@ button.small { padding: 6px 12px; font-size: 0.9rem; }
 .wx-fog line { stroke: #e8eef5; stroke-width: 2.6; stroke-linecap: round; }
 
 /* Animations only inside these scopes */
-:is(.drawer-open .map-full, .drawer-open .now-icon, .wx-pin:hover, .popup-icon:hover, .hour:hover, .day:hover, .now-icon:hover) .wx-rays { animation: wx-spin 12s linear infinite; }
-:is(.drawer-open .map-full, .drawer-open .now-icon, .wx-pin:hover, .popup-icon:hover, .hour:hover, .day:hover, .now-icon:hover) .wx-moon { animation: wx-glow 3s ease-in-out infinite alternate; }
-:is(.drawer-open .map-full, .drawer-open .now-icon, .wx-pin:hover, .popup-icon:hover, .hour:hover, .day:hover, .now-icon:hover) .wx-star { animation: wx-twinkle 1.8s ease-in-out infinite; }
-:is(.drawer-open .map-full, .drawer-open .now-icon, .wx-pin:hover, .popup-icon:hover, .hour:hover, .day:hover, .now-icon:hover) .wx-drift { animation: wx-drift 4s ease-in-out infinite alternate; }
-:is(.drawer-open .map-full, .drawer-open .now-icon, .wx-pin:hover, .popup-icon:hover, .hour:hover, .day:hover, .now-icon:hover) .wx-drift-slow { animation: wx-drift 6s ease-in-out infinite alternate-reverse; }
-:is(.drawer-open .map-full, .drawer-open .now-icon, .wx-pin:hover, .popup-icon:hover, .hour:hover, .day:hover, .now-icon:hover) .wx-drop { animation: wx-fall 0.9s linear infinite; }
-:is(.drawer-open .map-full, .drawer-open .now-icon, .wx-pin:hover, .popup-icon:hover, .hour:hover, .day:hover, .now-icon:hover) .wx-drop.wx-slow { animation-duration: 1.4s; }
-:is(.drawer-open .map-full, .drawer-open .now-icon, .wx-pin:hover, .popup-icon:hover, .hour:hover, .day:hover, .now-icon:hover) .wx-drop.wx-fast { animation-duration: 0.6s; }
-:is(.drawer-open .map-full, .drawer-open .now-icon, .wx-pin:hover, .popup-icon:hover, .hour:hover, .day:hover, .now-icon:hover) .wx-bolt { animation: wx-flash 2.2s steps(1, end) infinite; }
-:is(.drawer-open .map-full, .drawer-open .now-icon, .wx-pin:hover, .popup-icon:hover, .hour:hover, .day:hover, .now-icon:hover) .wx-flake { animation: wx-snow 2.4s linear infinite; }
-:is(.drawer-open .map-full, .drawer-open .now-icon, .wx-pin:hover, .popup-icon:hover, .hour:hover, .day:hover, .now-icon:hover) g.wx-fog { animation: wx-drift 3s ease-in-out infinite alternate; }
-.wx-still * { animation: none !important; } /* outer ring and city layer stay static */
+:is(.drawer-open .map-full, .drawer-open .now-icon, .wx-pin:hover, .city-pin:hover, .popup-icon:hover, .hour:hover, .day:hover, .now-icon:hover) .wx-rays { animation: wx-spin 12s linear infinite; }
+:is(.drawer-open .map-full, .drawer-open .now-icon, .wx-pin:hover, .city-pin:hover, .popup-icon:hover, .hour:hover, .day:hover, .now-icon:hover) .wx-moon { animation: wx-glow 3s ease-in-out infinite alternate; }
+:is(.drawer-open .map-full, .drawer-open .now-icon, .wx-pin:hover, .city-pin:hover, .popup-icon:hover, .hour:hover, .day:hover, .now-icon:hover) .wx-star { animation: wx-twinkle 1.8s ease-in-out infinite; }
+:is(.drawer-open .map-full, .drawer-open .now-icon, .wx-pin:hover, .city-pin:hover, .popup-icon:hover, .hour:hover, .day:hover, .now-icon:hover) .wx-drift { animation: wx-drift 4s ease-in-out infinite alternate; }
+:is(.drawer-open .map-full, .drawer-open .now-icon, .wx-pin:hover, .city-pin:hover, .popup-icon:hover, .hour:hover, .day:hover, .now-icon:hover) .wx-drift-slow { animation: wx-drift 6s ease-in-out infinite alternate-reverse; }
+:is(.drawer-open .map-full, .drawer-open .now-icon, .wx-pin:hover, .city-pin:hover, .popup-icon:hover, .hour:hover, .day:hover, .now-icon:hover) .wx-drop { animation: wx-fall 0.9s linear infinite; }
+:is(.drawer-open .map-full, .drawer-open .now-icon, .wx-pin:hover, .city-pin:hover, .popup-icon:hover, .hour:hover, .day:hover, .now-icon:hover) .wx-drop.wx-slow { animation-duration: 1.4s; }
+:is(.drawer-open .map-full, .drawer-open .now-icon, .wx-pin:hover, .city-pin:hover, .popup-icon:hover, .hour:hover, .day:hover, .now-icon:hover) .wx-drop.wx-fast { animation-duration: 0.6s; }
+:is(.drawer-open .map-full, .drawer-open .now-icon, .wx-pin:hover, .city-pin:hover, .popup-icon:hover, .hour:hover, .day:hover, .now-icon:hover) .wx-bolt { animation: wx-flash 2.2s steps(1, end) infinite; }
+:is(.drawer-open .map-full, .drawer-open .now-icon, .wx-pin:hover, .city-pin:hover, .popup-icon:hover, .hour:hover, .day:hover, .now-icon:hover) .wx-flake { animation: wx-snow 2.4s linear infinite; }
+:is(.drawer-open .map-full, .drawer-open .now-icon, .wx-pin:hover, .city-pin:hover, .popup-icon:hover, .hour:hover, .day:hover, .now-icon:hover) g.wx-fog { animation: wx-drift 3s ease-in-out infinite alternate; }
+.wx-still:not(:hover) * { animation: none !important; } /* outer ring and city layer stay static until hovered */
 @keyframes wx-spin { to { transform: rotate(360deg); } }
 @keyframes wx-drift { from { transform: translateX(-2px); } to { transform: translateX(2px); } }
 @keyframes wx-fall { 0% { transform: translateY(-4px); opacity: 0; } 25% { opacity: 1; } 100% { transform: translateY(6px); opacity: 0; } }
