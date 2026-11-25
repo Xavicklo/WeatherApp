@@ -346,9 +346,9 @@ button.ghost {
 }
 .cmp-panel[hidden] { display: none; }
 .cmp-panel h3 { margin: 0; font-size: 16px; }
-.cmp-panel select, .cmp-panel input { width: 100%; font: inherit; padding: 6px 8px; border: 1px solid #ccd; border-radius: 8px; background: #fff; color: inherit; }
+.cmp-panel select, .cmp-panel input { box-sizing: border-box; width: 100%; font: inherit; padding: 6px 8px; border: 1px solid #ccd; border-radius: 8px; background: #fff; color: inherit; }
 .cmp-panel select[hidden], .cmp-panel input[hidden] { display: none; }
-.cmp-side { border: 1px solid #dde; border-radius: 10px; padding: 6px 10px 10px; margin: 0; display: grid; gap: 6px; }
+.cmp-side { min-width: 0; border: 1px solid #dde; border-radius: 10px; padding: 6px 10px 10px; margin: 0; display: grid; gap: 6px; }
 .cmp-side legend { padding: 0 4px; font-weight: 600; }
 .cmp-note { margin: 0; color: #444; line-height: 1.5; }
 .cmp-note:empty, .cmp-status:empty { display: none; }

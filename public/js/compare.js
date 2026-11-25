@@ -32,18 +32,18 @@
     {
       id: "mataian-lake",
       name: "馬太鞍溪：崩塌與堰塞湖形成（2025）",
-      note: "7 月薇帕颱風引發大規模崩塌，堵住河道形成堰塞湖（右側藍綠色湖面）。",
-      center: [23.705, 121.3],
+      note: "7 月薇帕颱風外圍環流引發大規模崩塌，堵住河道形成堰塞湖。右側是 9/11（溢流前 12 天）的藍綠色湖面。",
+      center: [23.703, 121.295],
       zoom: 13,
       left: { source: "hls", value: "2025-06-15" },
-      right: { source: "hls", value: "2025-08-17" },
+      right: { source: "hls", value: "2025-09-11" },
     },
     {
       id: "mataian-flood",
       name: "馬太鞍溪：堰塞湖溢流後的下游（2025）",
       note: "9/23 堰塞湖溢流，洪水夾帶土石沖向光復鄉，河道明顯變寬、出現大片泥沙。",
-      center: [23.69, 121.37],
-      zoom: 12,
+      center: [23.675, 121.405],
+      zoom: 13,
       left: { source: "hls", value: "2025-06-15" },
       right: { source: "hls", value: "2025-10-11" },
     },
@@ -277,7 +277,7 @@
         const wrap = el("div", "leaflet-bar leaflet-control cmp-control");
         const button = el("a", "cmp-button", "🛰️");
         button.href = "#";
-        button.title = "災前災後比對";
+        button.title = "災前災後比對（比對中再按一次可收合面板）";
         button.setAttribute("role", "button");
         button.setAttribute("aria-label", "災前災後比對");
         button.setAttribute("aria-expanded", "false");
@@ -375,10 +375,12 @@
           left.style.clip = right.style.clip = "";
         }
 
+        // 🛰️ starts the comparison; while comparing it only folds the panel away so the map is visible.
         L.DomEvent.on(button, "click", (e) => {
           L.DomEvent.preventDefault(e);
-          if (active) shut();
-          else open();
+          if (!active) return open();
+          panel.hidden = !panel.hidden;
+          button.setAttribute("aria-expanded", String(!panel.hidden));
         });
         close.addEventListener("click", shut);
         presetSelect.addEventListener("change", () => {
