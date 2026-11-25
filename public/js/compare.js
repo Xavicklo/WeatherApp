@@ -294,9 +294,9 @@
     }
 
     const Control = L.Control.extend({
-      options: { position: "topleft" },
+      options: { position: "bottomright" }, // a round floating button, bottom-right
       onAdd() {
-        const wrap = el("div", "leaflet-bar leaflet-control cmp-control");
+        const wrap = el("div", "leaflet-control cmp-control");
         const button = el("a", "cmp-button", "🛰️");
         button.href = "#";
         button.title = "災前災後比對（比對中再按一次可收合面板）";

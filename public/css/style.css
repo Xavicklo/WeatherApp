@@ -436,7 +436,7 @@ button.small { padding: 6px 12px; font-size: 0.9rem; }
 .compare-mode .leaflet-popup-pane,
 .compare-mode .leaflet-tooltip-pane,
 .compare-mode .drawer { display: none !important; }
-.compare-mode .cmp-button { background: #4338ca !important; }
+.compare-mode .cmp-button { background: #fff; color: #4338ca; box-shadow: 0 0 0 3px #6d5cf6, 0 6px 18px rgba(0, 0, 0, 0.45); }
 
 /* Right: the forecast drawer (closed = pushed off-screen, only its tab shows) */
 .drawer {
@@ -535,10 +535,18 @@ button.small { padding: 6px 12px; font-size: 0.9rem; }
 .city-pin .wx-svg { display: inline-block; vertical-align: middle; margin: -6px 2px -6px -4px; }
 
 /* ---------- 災前災後比對（swipe） ---------- */
-.cmp-button { font-size: 20px !important; text-decoration: none; }
-.cmp-control { position: relative; }
+/* 🛰️ floating action button (bottom-right) */
+.cmp-control { position: relative; margin: 0 16px 16px 0 !important; border: 0 !important; }
+.app .leaflet-container a.cmp-button {
+  display: grid; place-items: center; width: 58px; height: 58px; border-radius: 50%;
+  font-size: 28px; line-height: 1; text-decoration: none; color: #fff;
+  background: linear-gradient(135deg, #4f7cff 0%, #7c3aed 100%);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45); border: 2px solid rgba(255, 255, 255, 0.85);
+  transition: transform 0.15s ease;
+}
+.app .leaflet-container a.cmp-button:hover { transform: scale(1.06); }
 .cmp-panel {
-  position: absolute; top: 0; left: 46px; width: 290px; max-height: calc(100vh - 140px); overflow: auto;
+  position: absolute; right: 0; bottom: 70px; width: 290px; max-height: calc(100vh - 160px); overflow: auto;
   background: rgba(255, 255, 255, 0.96); color: #1a1a2e; border-radius: 12px; padding: 12px 14px;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35); display: grid; gap: 8px; font-size: 14px;
 }
@@ -576,7 +584,7 @@ button.small { padding: 6px 12px; font-size: 0.9rem; }
   background: rgba(10, 16, 40, 0.8); color: #fff; white-space: nowrap;
 }
 .swipe-tag-left { left: 10px; }
-.swipe-tag-right { right: 10px; }
+.swipe-tag-right { right: 90px; } /* clear of the 🛰️ button */
 .map.comparing { cursor: default; }
 
 /* ---------- Responsive ---------- */
@@ -586,7 +594,10 @@ button.small { padding: 6px 12px; font-size: 0.9rem; }
   .easter-egg { display: none; }
   .now-icon { font-size: 2.4rem; }
   .map { height: 60vh; min-height: 340px; }
-  .cmp-panel { width: min(290px, calc(100vw - 90px)); }
+  .cmp-panel { width: min(300px, calc(100vw - 32px)); }
+  .app .leaflet-container a.cmp-button { width: 52px; height: 52px; font-size: 25px; }
+  .cmp-control { margin: 0 12px 12px 0 !important; }
+  .swipe-tag-right { right: 76px; }
 
   /* Phone: floating header on top, forecast drawer slides up from the bottom */
   .panel { top: 8px; left: 8px; right: 8px; width: auto; border-radius: 16px; }
