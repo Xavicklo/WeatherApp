@@ -355,6 +355,10 @@
       closePopup() {
         map.closePopup();
       },
+      getCenter() {
+        const c = map.getCenter();
+        return { lat: c.lat, lon: c.lng };
+      },
       flyTo(lat, lon, zoom) {
         map.flyTo([lat, lon], zoom, { duration: 1 });
       },

@@ -83,3 +83,12 @@ test("home page passes the Mapbox token to the map only when one is set", async 
   assert.match(await get(createApp({ ...fakes, mapboxToken: "pk.test123" })), /data-mapbox-token="pk\.test123"/);
   assert.match(await get(createApp({ ...fakes, mapboxToken: "" })), /data-mapbox-token=""/);
 });
+
+test("coordinates with a name skip reverse geocoding", async () => {
+  let reverseCalls = 0;
+  const handle = controller({ reverseGeocode: async () => (reverseCalls++, { location: "x" }) });
+  const res = await handle({ lat: "24.99", lon: "121.57", name: "政治大學指南校區, 文山區, 臺北市" });
+  assert.equal(res.status, 200);
+  assert.equal(res.body.location, "政治大學指南校區, 文山區, 臺北市");
+  assert.equal(reverseCalls, 0);
+});

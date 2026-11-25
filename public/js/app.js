@@ -410,6 +410,25 @@
     searchAddress(els.input.value);
   });
 
+  // ---------- search suggestions (autocomplete) ----------
+  if (window.Suggest) {
+    window.Suggest.attach({
+      input: els.input,
+      list: document.getElementById("suggest"),
+      // rank places near what the user is looking at first
+      getBias: () => (map ? map.getCenter() : null),
+      onPick(item) {
+        if (isCompare() && map) {
+          map.flyTo(item.lat, item.lon, 14);
+          setStatus(`已移到 ${item.label}`);
+          return;
+        }
+        addRecent(item.name);
+        load({ lat: item.lat.toFixed(5), lon: item.lon.toFixed(5), name: item.label }, `「${item.name}」`, { open: true });
+      },
+    });
+  }
+
   els.recent.addEventListener("click", (e) => {
     const btn = e.target.closest("button[data-query]");
     if (btn) searchAddress(btn.dataset.query);

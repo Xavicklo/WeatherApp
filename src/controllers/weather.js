@@ -16,6 +16,8 @@ function createWeatherController({ geocode, forecast, reverseGeocode, logger = c
     const lat = parseCoordinate(query.lat, 90);
     const lon = parseCoordinate(query.lon, 180);
     const hasCoords = lat !== null || lon !== null;
+    // Optional display name for coordinates (e.g. picked from the search suggestions): skips reverse geocoding
+    const name = typeof query.name === "string" ? query.name.trim().slice(0, MAX_ADDRESS_LENGTH) : "";
 
     if (!address && !hasCoords) {
       return { status: 400, body: { error: "請輸入要查詢的地點。" } };
@@ -33,11 +35,12 @@ function createWeatherController({ geocode, forecast, reverseGeocode, logger = c
       if (hasCoords) {
         // Name lookup and forecast don't depend on each other, so run them in parallel.
         const fallback = { location: "地圖選取位置", country: null, region: null };
-        const [name, wx] = await Promise.all([
-          reverseGeocode ? reverseGeocode(lat, lon) : fallback,
+        const known = name ? { location: name, country: null, region: null } : null;
+        const [label, wx] = await Promise.all([
+          known || (reverseGeocode ? reverseGeocode(lat, lon) : fallback),
           forecast(lat, lon),
         ]);
-        place = { latitude: lat, longitude: lon, ...name };
+        place = { latitude: lat, longitude: lon, ...label };
         weather = wx;
       } else {
         place = await geocode(address);

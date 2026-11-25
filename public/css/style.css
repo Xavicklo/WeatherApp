@@ -410,6 +410,21 @@ body.app { height: 100vh; height: 100dvh; overflow: hidden; }
 .panel .search-form button { border-radius: 999px; padding: 8px 16px; background: #fff; color: #4338ca; font-weight: 700; box-shadow: 0 2px 8px rgba(30, 20, 90, 0.25); }
 .panel .search-form button:hover { background: #eef0ff; filter: none; }
 .panel .toolbar { margin-top: 10px; }
+/* Search suggestions (autocomplete) */
+.suggest {
+  list-style: none; margin: 6px 0 0; padding: 4px; border-radius: 14px;
+  background: #fff; color: #1a1a2e; box-shadow: 0 8px 24px rgba(20, 10, 80, 0.35);
+  max-height: 46vh; overflow: auto;
+}
+.suggest[hidden] { display: none; }
+.suggest li {
+  display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; cursor: pointer;
+}
+.suggest li[aria-selected="true"] { background: #eef0ff; }
+.sg-icon { flex: none; width: 24px; text-align: center; font-size: 18px; }
+.sg-text { display: flex; flex-direction: column; min-width: 0; }
+.sg-text strong { font-size: 14.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sg-text small { font-size: 12px; color: #667; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 button.small { padding: 6px 12px; font-size: 0.9rem; }
 .panel .recent { margin: 10px 0 0; }
 .panel .recent:empty { display: none; }
