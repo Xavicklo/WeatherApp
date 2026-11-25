@@ -68,6 +68,9 @@ npm start       # http://localhost:3000
 
 ## Deploy
 
+**Vercel:** import the repo at vercel.com/new. Vercel detects Express and runs `index.js` (which exports the app) as a single Vercel Function; `public/` is served from its CDN. No build command or environment variables are needed.
+
+**Render:** 
 `render.yaml` is included: on [Render](https://render.com), choose **New → Blueprint**, then pick this repo.
 
 ## Data sources

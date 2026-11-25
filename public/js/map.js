@@ -240,7 +240,7 @@
     map.on("zoomend", thinOut);
     thinOut();
     L.control
-      .layers(bases, { 地名與行政界線: labels, 城市即時氣溫: cities, 附近天氣動畫: nearby, 雷達回波: radar }, { collapsed: window.innerWidth < 900 })
+      .layers(bases, { 地名與行政界線: labels, 城市即時氣溫: cities, 附近天氣動畫: nearby, 雷達回波: radar }, { collapsed: true }) // an icon, so it never covers popups or the drawer
       .addTo(map);
     new FullscreenControl().addTo(map);
     if (window.ImageryCompare) window.ImageryCompare.attach(map); // 災前災後比對（swipe）
