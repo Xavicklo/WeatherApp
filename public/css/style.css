@@ -422,8 +422,8 @@ button.small { padding: 6px 12px; font-size: 0.9rem; }
   position: absolute; left: -42px; top: 50%; transform: translateY(-50%);
   width: 42px; padding: 14px 0; border-radius: 14px 0 0 14px;
   display: flex; flex-direction: column; align-items: center; gap: 8px;
-  background: linear-gradient(180deg, rgba(59, 130, 246, 0.95), rgba(124, 58, 237, 0.95));
-  box-shadow: -4px 4px 16px rgba(0, 0, 0, 0.35); color: #fff; touch-action: none; cursor: grab;
+  background: #fff; color: #4338ca; border: 1px solid rgba(67, 56, 202, 0.18);
+  box-shadow: -4px 4px 16px rgba(0, 0, 0, 0.35); touch-action: none; cursor: grab;
 }
 .drawer-tab .grip { display: none; }
 .tab-arrow { font-size: 26px; line-height: 0.8; transition: transform 0.3s ease; }
@@ -566,7 +566,7 @@ button.small { padding: 6px 12px; font-size: 0.9rem; }
   .drawer.open { transform: none; }
   .drawer-tab {
     position: static; transform: none; width: 100%; height: 56px; flex: none; padding: 8px 12px;
-    border-radius: 18px 18px 0 0; gap: 6px; box-shadow: none; background: rgba(0, 0, 0, 0.15);
+    border-radius: 18px 18px 0 0; gap: 6px; box-shadow: none; background: rgba(0, 0, 0, 0.15); color: #fff; border: 0;
   }
   .drawer-tab .grip { display: block; width: 40px; height: 5px; border-radius: 3px; background: rgba(255, 255, 255, 0.65); }
   .tab-arrow { display: none; }

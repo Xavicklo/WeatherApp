@@ -305,9 +305,9 @@
     if (window.WeatherMap) {
       map = window.WeatherMap.init("map", {
         getUnit: () => state.unit,
-        onPick: (lat, lon, force) => {
+        onPick: (lat, lon) => {
           // With the forecast drawer open, a click on the map just closes it.
-          if (!force && window.Layout && window.Layout.isOpen()) return window.Layout.close();
+          if (window.Layout && window.Layout.isOpen()) return window.Layout.close();
           load({ lat: lat.toFixed(4), lon: lon.toFixed(4) }, F.formatCoord(lat, lon));
         },
       });

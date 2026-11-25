@@ -130,6 +130,8 @@
       .catch(() => "");
   }
 
+  let pinClick = () => {}; // set in init(): a click on a nearby pin
+
   /** Animated icons around the searched place (GeoJSON from /api/nearby). */
   function createNearbyLayer(map, getUnit) {
     const layer = L.layerGroup();
@@ -157,7 +159,7 @@
         const m = L.marker([y, x], { keyboard: false, zIndexOffset: f.properties.ring === 1 ? 100 : 0 });
         m.wx = { ...f.properties, name: "" };
         m.bindTooltip(`${f.properties.text}`, { direction: "top", offset: [0, -22] });
-        m.on("click", () => map.fire("click", { latlng: m.getLatLng(), force: true })); // look up that spot
+        m.on("click", () => pinClick(m.getLatLng())); // same rules as a map click
         draw(m);
         layer.addLayer(m);
         return m;
@@ -248,10 +250,26 @@
 
     let marker = null;
 
+    // A click while a popup is open only closes it (Leaflet closes it on "preclick"),
+    // so browsing the map never looks up a place by accident.
+    let popupOpen = false;
+    let swallowClick = false;
+    map.on("popupopen", () => (popupOpen = true));
+    map.on("popupclose", () => (popupOpen = false));
+    map.on("preclick", () => (swallowClick = popupOpen));
+
     map.on("click", (e) => {
+      if (swallowClick) {
+        swallowClick = false;
+        return;
+      }
       const { lat, lng } = e.latlng.wrap(); // keep longitude in -180..180 after panning around the globe
-      onPick(lat, lng, Boolean(e.force));
+      onPick(lat, lng);
     });
+    pinClick = (latlng) => {
+      if (popupOpen) return map.closePopup();
+      onPick(latlng.lat, latlng.lng);
+    };
 
     return {
       /** info: { kind, temperature, name } of the searched place, for its animated pin. */
