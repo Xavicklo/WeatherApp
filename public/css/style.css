@@ -676,6 +676,11 @@ button.small { padding: 6px 12px; font-size: 0.9rem; }
   .app.compare-mode .leaflet-bottom { bottom: 0; }
   .app.compare-mode .swipe-tag { bottom: 26px; }
   .mode-switch { margin-top: 8px; }
+  /* Folded header (default): only the search bar, like Travel Advisor. Tapping it expands the rest. */
+  .panel:not(.expanded) .panel-head { padding: 6px; }
+  .panel:not(.expanded) .panel-head > :not(.search-form):not(.status):not(.suggest) { display: none; }
+  .panel:not(.expanded) .search-form { margin-top: 0; }
+  .panel:not(.expanded) .status { margin: 6px 6px 2px; }
   .mode-switch button { font-size: 0.88rem; padding: 7px 4px; }
   .app .cmp-panel { max-height: min(50vh, calc(100dvh - var(--head-h, 150px) - 110px)); }
   .swipe-tag { bottom: 26px; font-size: 12px; }

@@ -83,7 +83,37 @@
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && open) setOpen(false);
+    if (e.key === "Escape" && panelOpen) setPanel(false);
   });
+
+  // ---------- phone: the header folds to just the search bar ----------
+  // Like Travel Advisor: on phones only the search bar shows until it is tapped.
+  // Tapping outside folds it again; a map tap that folds it does nothing else.
+  const panel = head.closest(".panel");
+  let panelOpen = false;
+  let swallowMapClick = false;
+  let swallowTimer = null;
+  function setPanel(value) {
+    panelOpen = value;
+    panel.classList.toggle("expanded", value);
+    if (!value && panel.contains(document.activeElement)) document.activeElement.blur();
+  }
+  panel.addEventListener("focusin", () => phone.matches && setPanel(true));
+  panel.addEventListener("click", () => phone.matches && !panelOpen && setPanel(true));
+  document.addEventListener(
+    "pointerdown",
+    (e) => {
+      if (!phone.matches || !panelOpen || panel.contains(e.target)) return;
+      const onMap = e.target.closest("#map") && !e.target.closest(".leaflet-marker-icon, .leaflet-control");
+      setPanel(false);
+      if (onMap) {
+        swallowMapClick = true;
+        clearTimeout(swallowTimer);
+        swallowTimer = setTimeout(() => (swallowMapClick = false), 600);
+      }
+    },
+    true
+  );
 
   window.Layout = {
     /** Slide the forecast out (and optionally scroll to a part of it). */
@@ -110,6 +140,16 @@
       label.textContent = text;
     },
     isPhone: () => phone.matches,
+    /** Phones: fold the header back to the search bar (after a search or a pick). */
+    foldPanel() {
+      if (phone.matches) setPanel(false);
+    },
+    /** True once for a map tap that only folded the header. */
+    takeMapClick() {
+      const s = swallowMapClick;
+      swallowMapClick = false;
+      return s;
+    },
     body,
   };
 })();

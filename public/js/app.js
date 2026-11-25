@@ -113,7 +113,10 @@
         updateUrl(params.address);
       }
       // A typed search (or "my location") slides the forecast drawer out; map clicks keep the map in view.
-      if (opts.open && window.Layout) window.Layout.open();
+      if (opts.open && window.Layout) {
+        window.Layout.foldPanel();
+        window.Layout.open();
+      }
     } catch (err) {
       if (err.name === "AbortError") return;
       els.result.hidden = true;
@@ -307,6 +310,7 @@
         getUnit: () => state.unit,
         onDismiss: () => window.Layout && window.Layout.close(),
         onPick: (lat, lon) => {
+          if (window.Layout && window.Layout.takeMapClick()) return; // that tap only folded the phone header
           // With the forecast drawer open, a click on the map just closes it.
           if (window.Layout && window.Layout.isOpen()) return window.Layout.close();
           load({ lat: lat.toFixed(4), lon: lon.toFixed(4) }, F.formatCoord(lat, lon));
@@ -436,12 +440,14 @@
   document.querySelectorAll(".examples button").forEach((b) =>
     b.addEventListener("click", () => {
       els.input.value = b.dataset.example;
+      if (window.Layout) window.Layout.foldPanel();
       findDisaster(b.dataset.example);
     })
   );
 
   els.form.addEventListener("submit", (e) => {
     e.preventDefault();
+    if (window.Layout) window.Layout.foldPanel();
     const query = els.input.value.trim();
     if (isCompare() && map) {
       if (query) findDisaster(query);
@@ -458,6 +464,7 @@
       // rank places near what the user is looking at first
       getBias: () => (map ? map.getCenter() : null),
       onPick(item) {
+        if (window.Layout) window.Layout.foldPanel();
         if (isCompare() && map) {
           map.flyTo(item.lat, item.lon, 14);
           setStatus(`已移到 ${item.label}`);
