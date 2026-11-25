@@ -1,21 +1,32 @@
 <!DOCTYPE html>
-
-<html>
-
+<html lang="zh-Hant">
 <head>
-  <title>{{title}}</title>
-  <link rel= "icon" href="../img/weather_icon.png"> </link>
-  <link rel="stylesheet" href="/css/style.css">
+  {{> head }}
 </head>
 <body>
-  <div class="body">
-     <div class="main-content">
-      {{> header }}
-  <p>{{helptext}}</p>
-  <img class="coding" src="../img/coding.jpg"></img>
-  </div>
-  {{> footer }}
+  <div class="page narrow">
+    {{> header }}
+    <main class="main-content prose">
+      <h1>使用說明</h1>
+      <img class="coding" src="/img/coding.jpg" alt="" width="320">
+      <h2>搜尋</h2>
+      <ul>
+        <li>輸入城市名稱，例如 <code>Taipei</code> 或 <code>Kyoto</code>。英文地名的搜尋結果最準確。</li>
+        <li>在逗號後面加上地區或國家，可以區分同名地點，例如 <code>Paris, Texas</code> 和 <code>Paris, France</code>。</li>
+        <li><strong>點地圖上任一點</strong>，就能查詢那個位置的天氣。</li>
+        <li>點 <strong>📍 我的位置</strong> 會使用瀏覽器定位，瀏覽器會先詢問你是否允許。</li>
+        <li>最近搜尋過的地點會顯示在搜尋框下方，點一下就能再查一次。</li>
+      </ul>
+      <h2>地圖圖層</h2>
+      <p>地圖右上角的圖層選單可以切換底圖（衛星影像、街道圖、淺色底圖、地形圖），也可以開關疊加圖層（地名與行政界線、城市即時氣溫、雷達回波）。左上角的 ⛶ 按鈕可以切換全螢幕。</p>
+      <h2>溫度單位</h2>
+      <p>用 °C / °F 按鈕切換溫度單位。你的選擇會記在這台裝置上。</p>
+      <h2>API</h2>
+      <p><code>GET /api/weather?address=Tokyo</code> 或 <code>GET /api/weather?lat=25.03&amp;lon=121.56</code></p>
+      <p><code>GET /api/cities</code> 回傳 GeoJSON FeatureCollection，內容是台灣各城市的即時氣溫。</p>
+      <p>發生錯誤時會回傳對應的 HTTP 狀態碼（400、404、502 或 504），以及 <code>{"error": "..."}</code> 格式的訊息。</p>
+    </main>
+    {{> footer }}
   </div>
 </body>
-
 </html>

@@ -1,44 +1,106 @@
 <!DOCTYPE html>
-
-<html>
-
+<html lang="zh-Hant">
 <head>
-  <title>{{title}}</title>
-  <link rel= "icon" href="../img/weather_icon.png"> </link>
-  <link rel="stylesheet" href="/css/style.css">
+  {{> head }}
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 </head>
+<body class="app" data-theme="night">
+  <!-- The map fills the whole window; everything else floats on top of it. -->
+  <div id="map" class="map map-full" role="region" aria-label="地圖" data-mapbox-token="{{mapboxToken}}"></div>
 
-<body>
-  <img class ="moon" src="../img/moon.png"></img>
-  <img class = "hole" src="../img/hole.png"></img>
-  <img class="stand" src="../img/stand.png"></img>
-  <div class = "body">
-    <div class="main-content">
-    {{> header }}
+  <!-- Left: title and search -->
+  <aside id="panel" class="panel" aria-label="天氣查詢">
+    <header class="panel-head">
+      <div class="panel-top">
+        {{> wordmark }}
+        <span class="by">by Xavick</span>
+      </div>
 
-    <h2>Use this site to get your weather</h2>
+      <div class="mode-switch" role="group" aria-label="功能">
+        <button type="button" data-mode="weather" aria-pressed="true">☀️ 天氣查詢</button>
+        <button type="button" data-mode="compare" aria-pressed="false">🛰️ 災前災後比對</button>
+      </div>
 
-    <form>
-      <input placeholder="Location">
-      <button>Search</button>
-    </form>
-    <h2 id="message-location"></h2>
-    <h3 id="message-weather"></h3>
-    <p id="message-temp"></p>
-    <p id="message-humidity"></p>
-    <p id="message-windspeed"></p>
-    <p id="message-visibility"></p>
-    <p id="message-pressure"></p>
-    <p id ="message-country"></p>
-    <p id ="message-region">
-    <p id="message-localtime"></p>
-    <p id="message-global-site"></p>
-  </div>
-  
-  {{> footer }}
-  
+      <form id="search-form" class="search-form" role="search" autocomplete="off">
+        <label for="search-input" class="visually-hidden">城市或地點</label>
+        <span class="search-icon" aria-hidden="true">⌕</span>
+        <input id="search-input" name="address" type="search" placeholder="搜尋城市，例如 Taipei 或 Paris, France" maxlength="100" required>
+        <button type="submit" id="search-button">搜尋</button>
+      </form>
+
+      <div class="toolbar weather-only">
+        <button type="button" id="locate-button" class="ghost small">📍 我的位置</button>
+        <div class="unit-toggle" role="group" aria-label="溫度單位">
+          <button type="button" data-unit="C" aria-pressed="true">°C</button>
+          <button type="button" data-unit="F" aria-pressed="false">°F</button>
+        </div>
+      </div>
+      <ul id="recent" class="recent weather-only" aria-label="最近搜尋"></ul>
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+      <p class="head-hint weather-only">📍 點地圖任一點查天氣</p>
+      <p class="head-hint compare-only">🛰️ 拖曳地圖中間的拉桿比較兩個時間的衛星影像；搜尋地名可以把地圖移過去。</p>
+    </header>
+  </aside>
+
+  <!-- Right (phone: bottom): the forecast drawer, closed until a search finishes -->
+  <aside id="drawer" class="drawer" aria-label="天氣預報" hidden>
+    <button type="button" id="drawer-tab" class="drawer-tab" aria-controls="drawer-body" aria-expanded="false">
+      <span class="grip" aria-hidden="true"></span>
+      <span class="tab-arrow" aria-hidden="true">‹</span>
+      <span id="drawer-label" class="tab-label">天氣預報</span>
+    </button>
+
+    <div id="drawer-body" class="drawer-body">
+      <section id="result" class="result" hidden aria-live="polite">
+        <article class="card now">
+          <div class="now-main">
+            <div>
+              <h2 id="place"></h2>
+              <p id="place-meta" class="muted"></p>
+              <p id="condition" class="condition"></p>
+            </div>
+            <div class="now-temp">
+              <span id="icon" class="now-icon" aria-hidden="true"></span>
+              <span id="temp" class="temp-big"></span>
+            </div>
+          </div>
+          <p id="summary" class="muted"></p>
+        </article>
+
+        <div class="stats" id="stats"></div>
+
+        <article class="card hourly-card">
+          <h3>未來 24 小時</h3>
+          <div class="hourly-scroll">
+            <div id="hourly" class="hourly"></div>
+          </div>
+        </article>
+
+        <article class="card daily-card">
+          <h3>一週預報</h3>
+          <ol id="daily" class="daily"></ol>
+        </article>
+      </section>
+
+      <section id="skeleton" class="result skeleton" hidden aria-hidden="true">
+        <div class="card sk-block"></div>
+        <div class="stats"><div class="sk-stat"></div><div class="sk-stat"></div><div class="sk-stat"></div><div class="sk-stat"></div></div>
+        <div class="card sk-block tall"></div>
+      </section>
+
+      <footer class="panel-foot">
+        <nav aria-label="其他頁面"><a href="/about">關於</a> · <a href="/help">說明</a></nav>
+        <p>© {{year}} {{name}} · 資料來源 <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a></p>
+      </footer>
+    </div>
+  </aside>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="/js/format.js"></script>
+  <script src="/js/layout.js"></script>
+  <script src="/js/wxicons.js"></script>
+  <script src="/js/compare.js"></script>
+  <script src="/js/map.js"></script>
   <script src="/js/app.js"></script>
-  </div>
 </body>
-
 </html>

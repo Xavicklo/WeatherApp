@@ -1,0 +1,16 @@
+# One-click deploy on Render (https://render.com) — free web service.
+services:
+  - type: web
+    name: weather-app
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "20"
+      - key: MAPBOX_TOKEN # optional, set it in the Render dashboard
+        sync: false

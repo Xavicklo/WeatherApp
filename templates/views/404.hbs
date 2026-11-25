@@ -1,18 +1,18 @@
 <!DOCTYPE html>
-
-<html>
-
+<html lang="zh-Hant">
 <head>
-  <title>{{title}}</title>
-  <link rel= "icon" href="../img/weather_icon.png"> </link>
-  <link rel="stylesheet" href="/css/style.css">
+  {{> head }}
 </head>
 <body>
-  <div class="main-content">
+  <div class="page narrow">
     {{> header }}
-    <p>{{errorMessage}}</p>
+    <main class="main-content center">
+      <p class="big-icon" aria-hidden="true">🌪️</p>
+      <h1>404</h1>
+      <p>{{errorMessage}}</p>
+      <a class="button-link" href="/">回到天氣查詢</a>
+    </main>
+    {{> footer }}
   </div>
-  {{> footer }}
 </body>
-
 </html>
