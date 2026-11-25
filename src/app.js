@@ -10,6 +10,7 @@ const { createCityLayer } = require("./services/cities");
 const { createWeatherController } = require("./controllers/weather");
 const { createWaybackCatalog } = require("./services/wayback");
 const { createNearby } = require("./services/nearby");
+const { createEventLocator } = require("./services/eventLocator");
 
 const AUTHOR = "Xavick Lo";
 
@@ -25,6 +26,7 @@ function createApp(deps = {}) {
   const cityLayer = deps.cityLayer || createCityLayer({ cache });
   const waybackReleases = deps.waybackReleases || createWaybackCatalog({ cache });
   const nearby = deps.nearby || createNearby({ cache });
+  const locateEvent = deps.locateEvent || createEventLocator({ cache, geocode });
   // Mapbox public token (pk.…). It is meant to be used in the browser; protect it with
   // URL restrictions in the Mapbox account. Without one, the Mapbox base maps are just hidden.
   const mapboxToken = deps.mapboxToken ?? process.env.MAPBOX_TOKEN ?? "";
@@ -103,6 +105,16 @@ function createApp(deps = {}) {
       res.json(await waybackReleases());
     } catch (err) {
       res.status(err.status || 500).json({ error: "歷史衛星影像清單暫時無法使用。" });
+    }
+  });
+
+  // Text or a news link -> where/when the disaster was + clear satellite dates before and after
+  app.get("/api/imagery/event", async (req, res) => {
+    try {
+      res.json(await locateEvent(req.query.q));
+    } catch (err) {
+      const status = err.status && err.status < 500 ? err.status : err.status || 500;
+      res.status(status).json({ error: err.name === "EventError" ? err.message : "事件搜尋暫時無法使用，請稍後再試。" });
     }
   });
 

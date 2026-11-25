@@ -372,7 +372,7 @@
   function setMode(compare) {
     document.body.classList.toggle("compare-mode", compare);
     modeBtns.forEach((b) => b.setAttribute("aria-pressed", String((b.dataset.mode === "compare") === compare)));
-    els.input.placeholder = compare ? "搜尋地點，把地圖移過去比對" : "搜尋城市，例如 Taipei 或 Paris, France";
+    els.input.placeholder = compare ? "輸入災害事件或貼新聞連結，例如：2025 洛杉磯大火" : "搜尋城市，例如 Taipei 或 Paris, France";
     if (compare && window.Layout) window.Layout.close();
     setStatus("");
   }
@@ -386,15 +386,35 @@
   // compare.js reports every start/stop (also from its own 🛰️ and 關閉比對 buttons)
   document.addEventListener("compare:change", (e) => setMode(e.detail.active));
 
+  /**
+   * Comparison mode: text or a news link -> the server works out what/where/when and picks
+   * clear satellite dates (/api/imagery/event). A plain place name just moves the map there.
+   */
+  async function findEvent(query) {
+    const isLink = /^https?:\/\//i.test(query);
+    setStatus(isLink ? "🛰️ 正在讀取新聞、判斷地點和日期…" : `🛰️ 正在分析「${query}」…`);
+    try {
+      const res = await fetch("/api/imagery/event?" + new URLSearchParams({ q: query }));
+      const data = await res.json();
+      if (!res.ok || data.error) throw Object.assign(new Error(data.error || "找不到這個事件。"), { status: res.status });
+      setStatus("");
+      window.ImageryCompare.showEvent(data);
+    } catch (err) {
+      // Not an event (e.g. just "台北")? Then move the map there like a normal search.
+      if (!isLink && err.status === 422) return flyToPlace(query, "；要自動比對災前災後，請輸入災害和時間，例如「2025 洛杉磯大火」。");
+      setStatus(err.message, "error");
+    }
+  }
+
   /** In comparison mode a search only moves the map there (no weather, no markers). */
-  async function flyToPlace(query) {
+  async function flyToPlace(query, suffix = "") {
     setStatus(`正在尋找「${query}」…`);
     try {
       const res = await fetch("/api/weather?" + new URLSearchParams({ address: query }));
       const data = await res.json();
       if (!res.ok || data.error || !data.point) throw new Error(data.error || "找不到這個地點。");
       map.flyTo(data.point.latitude, data.point.longitude, 14);
-      setStatus(`已移到 ${data.location}`);
+      setStatus(`已移到 ${data.location}${suffix}`);
     } catch (err) {
       setStatus(err.message, "error");
     }
@@ -404,7 +424,7 @@
     e.preventDefault();
     const query = els.input.value.trim();
     if (isCompare() && map) {
-      if (query) flyToPlace(query);
+      if (query) findEvent(query);
       return;
     }
     searchAddress(els.input.value);

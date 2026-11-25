@@ -47,4 +47,18 @@ async function getJson(url, { timeoutMs = 8000, fetchImpl = globalThis.fetch, he
   }
 }
 
-module.exports = { getJson, UpstreamError };
+/** Same as getJson for HTML pages (news articles); refuses anything larger than 2 MB. */
+async function getText(url, { timeoutMs = 8000, fetchImpl = globalThis.fetch, headers } = {}) {
+  let response;
+  try {
+    response = await fetchImpl(url, { signal: AbortSignal.timeout(timeoutMs), headers, redirect: "follow" });
+  } catch (err) {
+    throw new UpstreamError("無法連線到這個網址。", { status: 502, cause: err });
+  }
+  if (!response.ok) throw new UpstreamError(`網址回應錯誤（${response.status}）。`, { status: 502 });
+  const text = await response.text();
+  if (text.length > 2_000_000) throw new UpstreamError("網頁太大了。", { status: 502 });
+  return text;
+}
+
+module.exports = { getJson, getText, UpstreamError };

@@ -84,6 +84,7 @@
   let waybackPromise = null;
   let foldOnMapClick = () => false; // set by attach(); true when comparison mode handled the click
   let openCompare = () => {};
+  let showEventImpl = () => {};
   let closeCompare = () => {};
   function loadWayback() {
     if (!waybackPromise) {
@@ -399,8 +400,15 @@
           clip();
         }
 
+        // A case found by the event search (not one of the built-in ones) gets its own entry in the list
+        const eventOption = el("option");
+        eventOption.value = "event";
+        eventOption.hidden = true;
+        presetSelect.insertBefore(eventOption, presetSelect.firstChild);
+        let lastEvent = null;
+
         async function applyPreset(id) {
-          const p = PRESETS.find((x) => x.id === id);
+          const p = typeof id === "object" ? id : id === "event" ? lastEvent : PRESETS.find((x) => x.id === id);
           if (!p) return;
           presetSelect.value = p.id;
           note.textContent = p.note;
@@ -414,7 +422,44 @@
           swipe.reset();
         }
 
-        function open() {
+        /** The event search's reasoning, step by step (📰 → 🔥 → 📚 → 📍 → 📅 → 🛰️). */
+        function showSteps(steps) {
+          if (!steps || !steps.length) return;
+          const list = el("ol", "cmp-steps");
+          for (const s of steps) {
+            const li = el("li");
+            li.appendChild(el("span", "cmp-step-icon", s.icon));
+            if (s.url) {
+              const a = el("a", null, s.text);
+              a.href = s.url;
+              a.target = "_blank";
+              a.rel = "noopener";
+              li.appendChild(a);
+            } else {
+              li.appendChild(el("span", null, s.text));
+            }
+            list.appendChild(li);
+          }
+          note.appendChild(list);
+        }
+
+        showEventImpl = async ({ preset, event, steps }) => {
+          let target = preset;
+          if (event) {
+            lastEvent = { ...event, id: "event", note: "" };
+            eventOption.textContent = `🔎 ${event.name}${event.date ? `（${event.date.slice(0, 4)}）` : ""}`;
+            eventOption.hidden = false;
+            target = lastEvent;
+          }
+          if (!target) return;
+          if (!active) open(target);
+          else await applyPreset(target);
+          setPanel(true);
+          // open() applies the case asynchronously; add the steps once its note is in place
+          setTimeout(() => showSteps(steps), 0);
+        };
+
+        function open(target) {
           if (active) return;
           active = true;
           panel.hidden = false;
@@ -428,7 +473,7 @@
           swipe.place();
           map.closePopup();
           document.dispatchEvent(new CustomEvent("compare:change", { detail: { active: true } }));
-          applyPreset(presetSelect.value === "custom" ? PRESETS[0].id : presetSelect.value);
+          applyPreset(target || (presetSelect.value === "custom" || presetSelect.value === "event" ? PRESETS[0].id : presetSelect.value));
         }
 
         function shut() {
@@ -483,6 +528,7 @@
     PRESETS,
     handleMapClick: () => foldOnMapClick(),
     open: () => openCompare(),
+    showEvent: (result) => showEventImpl(result),
     close: () => closeCompare(),
   };
 })();
