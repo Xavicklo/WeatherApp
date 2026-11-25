@@ -115,6 +115,7 @@
         name: p.name,
         context,
         label: [p.name, context].filter(Boolean).join(", "),
+        country: (p.countrycode || "").toUpperCase(),
         lat,
         lon,
         icon: ICONS[p.osm_value] || ICONS[p.type] || "📍",
@@ -134,14 +135,17 @@
         if (!r.ok) return close();
         const data = await r.json();
         const seen = new Set();
-        // Photon's location bias is weak, so rank places within ~500 km of the map first
-        // (keeping Photon's own order inside each group): 政治 → 政治大學 before a school in Wuhan.
+        // Photon's location bias is weak, so re-rank (keeping Photon's order inside each group):
+        // Chinese queries put Taiwan first (政治 → 政治大學, not a school in Wuhan), then places
+        // within ~500 km of the map; Latin queries just prefer places near the map.
+        const cjk = CJK.test(q);
+        const rank = (it) => (cjk && it.country === "TW" ? 0 : km(bias, it) < 500 ? 1 : 2);
         const results = (data.features || [])
           .filter((f) => f.properties && f.properties.name && !SKIP.has(f.properties.osm_value))
           .map(toItem)
           .filter((it) => !seen.has(it.label) && seen.add(it.label))
-          .map((it, i) => ({ it, i, near: km(bias, it) < 500 ? 0 : 1 }))
-          .sort((a, b) => a.near - b.near || a.i - b.i)
+          .map((it, i) => ({ it, i, r: rank(it) }))
+          .sort((a, b) => a.r - b.r || a.i - b.i)
           .map((x) => x.it)
           .slice(0, MAX);
         cache.set(q, results);
