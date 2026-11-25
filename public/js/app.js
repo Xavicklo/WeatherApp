@@ -366,8 +366,47 @@
   }
 
   // ---------- events ----------
+  // ---------- mode: weather ⇄ before/after imagery ----------
+  const modeBtns = document.querySelectorAll(".mode-switch button");
+  const isCompare = () => document.body.classList.contains("compare-mode");
+  function setMode(compare) {
+    document.body.classList.toggle("compare-mode", compare);
+    modeBtns.forEach((b) => b.setAttribute("aria-pressed", String((b.dataset.mode === "compare") === compare)));
+    els.input.placeholder = compare ? "搜尋地點，把地圖移過去比對" : "搜尋城市，例如 Taipei 或 Paris, France";
+    if (compare && window.Layout) window.Layout.close();
+    setStatus("");
+  }
+  modeBtns.forEach((b) =>
+    b.addEventListener("click", () => {
+      if (!window.ImageryCompare || !map) return;
+      if (b.dataset.mode === "compare") window.ImageryCompare.open();
+      else window.ImageryCompare.close();
+    })
+  );
+  // compare.js reports every start/stop (also from its own 🛰️ and 關閉比對 buttons)
+  document.addEventListener("compare:change", (e) => setMode(e.detail.active));
+
+  /** In comparison mode a search only moves the map there (no weather, no markers). */
+  async function flyToPlace(query) {
+    setStatus(`正在尋找「${query}」…`);
+    try {
+      const res = await fetch("/api/weather?" + new URLSearchParams({ address: query }));
+      const data = await res.json();
+      if (!res.ok || data.error || !data.point) throw new Error(data.error || "找不到這個地點。");
+      map.flyTo(data.point.latitude, data.point.longitude, 14);
+      setStatus(`已移到 ${data.location}`);
+    } catch (err) {
+      setStatus(err.message, "error");
+    }
+  }
+
   els.form.addEventListener("submit", (e) => {
     e.preventDefault();
+    const query = els.input.value.trim();
+    if (isCompare() && map) {
+      if (query) flyToPlace(query);
+      return;
+    }
     searchAddress(els.input.value);
   });
 

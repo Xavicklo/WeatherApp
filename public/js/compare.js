@@ -78,7 +78,9 @@
   ];
 
   let waybackPromise = null;
-  let foldOnMapClick = () => false; // set by attach(); true when a map click folded the panel
+  let foldOnMapClick = () => false; // set by attach(); true when comparison mode handled the click
+  let openCompare = () => {};
+  let closeCompare = () => {};
   function loadWayback() {
     if (!waybackPromise) {
       waybackPromise = fetch("/api/imagery/wayback")
@@ -391,6 +393,8 @@
           });
           map.on("move zoom zoomend resize viewreset", clip);
           swipe.place();
+          map.closePopup();
+          document.dispatchEvent(new CustomEvent("compare:change", { detail: { active: true } }));
           applyPreset(presetSelect.value === "custom" ? PRESETS[0].id : presetSelect.value);
         }
 
@@ -406,7 +410,10 @@
           swipe.remove();
           swipe = null;
           left.style.clip = right.style.clip = "";
+          document.dispatchEvent(new CustomEvent("compare:change", { detail: { active: false } }));
         }
+        openCompare = open;
+        closeCompare = shut;
 
         // 🛰️ starts the comparison; while comparing it only folds the panel away so the map is visible.
         L.DomEvent.on(button, "click", (e) => {
@@ -421,9 +428,10 @@
         };
         fold.addEventListener("click", () => setPanel(false));
         // While comparing, a click on the map just folds the panel away (map.js asks first).
+        // In comparison mode the map doesn't look up weather: a click only folds the panel away.
         foldOnMapClick = () => {
-          if (!active || panel.hidden) return false;
-          setPanel(false);
+          if (!active) return false;
+          if (!panel.hidden) setPanel(false);
           return true;
         };
         presetSelect.addEventListener("change", () => {
@@ -436,5 +444,11 @@
     new Control().addTo(map);
   }
 
-  window.ImageryCompare = { attach, PRESETS, handleMapClick: () => foldOnMapClick() };
+  window.ImageryCompare = {
+    attach,
+    PRESETS,
+    handleMapClick: () => foldOnMapClick(),
+    open: () => openCompare(),
+    close: () => closeCompare(),
+  };
 })();

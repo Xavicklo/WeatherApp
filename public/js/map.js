@@ -325,6 +325,9 @@
       closePopup() {
         map.closePopup();
       },
+      flyTo(lat, lon, zoom) {
+        map.flyTo([lat, lon], zoom, { duration: 1 });
+      },
     };
   }
 

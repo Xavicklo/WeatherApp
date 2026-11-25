@@ -417,6 +417,27 @@ button.small { padding: 6px 12px; font-size: 0.9rem; }
 .panel .status:empty { display: none; }
 .head-hint { margin: 8px 0 0; font-size: 12.5px; color: var(--muted); }
 
+/* Mode switch: weather ⇄ before/after imagery */
+.mode-switch {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 12px; padding: 4px;
+  background: rgba(10, 6, 50, 0.28); border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 14px;
+}
+.mode-switch button {
+  background: transparent; padding: 8px 6px; border-radius: 10px; font-size: 0.95rem; font-weight: 600;
+  color: rgba(255, 255, 255, 0.8); white-space: nowrap;
+}
+.mode-switch button[aria-pressed="true"] { background: #fff; color: #4338ca; box-shadow: 0 2px 8px rgba(30, 20, 90, 0.3); }
+.compare-only { display: none; }
+.compare-mode .compare-only { display: block; }
+.compare-mode .weather-only { display: none !important; }
+/* Comparison mode: imagery only. No weather pins, popups, tooltips or forecast drawer. */
+.compare-mode .leaflet-marker-pane,
+.compare-mode .leaflet-shadow-pane,
+.compare-mode .leaflet-popup-pane,
+.compare-mode .leaflet-tooltip-pane,
+.compare-mode .drawer { display: none !important; }
+.compare-mode .cmp-button { background: #4338ca !important; }
+
 /* Right: the forecast drawer (closed = pushed off-screen, only its tab shows) */
 .drawer {
   position: fixed; top: 16px; right: 16px; bottom: 16px; width: 420px; z-index: 1000;
@@ -592,6 +613,10 @@ button.small { padding: 6px 12px; font-size: 0.9rem; }
   .app.has-drawer .leaflet-bottom { bottom: 56px; }
   .app.has-drawer .swipe-tag { bottom: 68px; }
   .app .leaflet-control-attribution { font-size: 9px; line-height: 1.3; max-width: 70vw; }
+  .app.compare-mode .leaflet-bottom { bottom: 0; }
+  .app.compare-mode .swipe-tag { bottom: 26px; }
+  .mode-switch { margin-top: 8px; }
+  .mode-switch button { font-size: 0.88rem; padding: 7px 4px; }
   .app .cmp-panel { max-height: min(50vh, calc(100dvh - var(--head-h, 150px) - 110px)); }
   .swipe-tag { bottom: 26px; font-size: 12px; }
 }
