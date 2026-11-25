@@ -2,7 +2,7 @@
 
 ## 0. 面試前一天的檢查清單
 
-- [ ] `npm install && npm test`，確認 25 個測試全部通過
+- [ ] `npm install && npm test`，確認 26 個測試全部通過
 - [ ] `npm start`，打開 http://localhost:3000，把下面的 demo 流程完整走一遍
 - [ ] **到 Mapbox 後台撤銷舊的 token**：舊版程式碼把 token 寫死，它還留在 git 歷史裡。weatherstack 的 key 也一起作廢
 - [ ] 如果要給線上網址：部署到 Render 之後，面試前 5 分鐘先打開一次。免費方案閒置後會休眠，第一次載入大約要 30 到 60 秒
