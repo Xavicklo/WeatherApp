@@ -410,6 +410,16 @@ body.app { height: 100vh; height: 100dvh; overflow: hidden; }
 .panel .search-form button { border-radius: 999px; padding: 8px 16px; background: #fff; color: #4338ca; font-weight: 700; box-shadow: 0 2px 8px rgba(30, 20, 90, 0.25); }
 .panel .search-form button:hover { background: #eef0ff; filter: none; }
 .panel .toolbar { margin-top: 10px; }
+/* Comparison mode: built-in examples */
+.examples { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.compare-mode .examples.compare-only { display: flex; }
+.examples-title { width: 100%; font-size: 12.5px; color: var(--muted); }
+.examples button {
+  padding: 5px 10px; font-size: 13px; border-radius: 999px; background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.35); color: #fff; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.examples button:hover { background: rgba(255, 255, 255, 0.28); filter: none; }
+.panel .status { word-break: break-word; }
 /* Search suggestions (autocomplete) */
 .suggest {
   list-style: none; margin: 6px 0 0; padding: 4px; border-radius: 14px;

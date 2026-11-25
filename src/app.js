@@ -10,6 +10,7 @@ const { createCityLayer } = require("./services/cities");
 const { createWeatherController } = require("./controllers/weather");
 const { createWaybackCatalog } = require("./services/wayback");
 const { createNearby } = require("./services/nearby");
+const { createDisasterResolver } = require("./services/disasters");
 
 const AUTHOR = "Xavick Lo";
 
@@ -25,6 +26,7 @@ function createApp(deps = {}) {
   const cityLayer = deps.cityLayer || createCityLayer({ cache });
   const waybackReleases = deps.waybackReleases || createWaybackCatalog({ cache });
   const nearby = deps.nearby || createNearby({ cache });
+  const resolveDisaster = deps.resolveDisaster || createDisasterResolver({ cache });
   // Mapbox public token (pk.…). It is meant to be used in the browser; protect it with
   // URL restrictions in the Mapbox account. Without one, the Mapbox base maps are just hidden.
   const mapboxToken = deps.mapboxToken ?? process.env.MAPBOX_TOKEN ?? "";
@@ -94,6 +96,15 @@ function createApp(deps = {}) {
       res.type("application/geo+json").send(JSON.stringify(await nearby(lat, lon)));
     } catch (err) {
       res.status(err.status || 500).json({ error: "附近天氣暫時無法使用。" });
+    }
+  });
+
+  // Keyword, pasted text or news URL → which before/after imagery preset it is about
+  app.get("/api/disaster", async (req, res) => {
+    try {
+      res.json(await resolveDisaster(req.query.q));
+    } catch (err) {
+      res.status(err.status === 400 ? 400 : 502).json({ error: err.status ? err.message : "暫時無法判斷這段文字。" });
     }
   });
 

@@ -210,3 +210,43 @@ test("fromNominatim prefers the district over a station with the same name", () 
   const r = { lat: "24.97", lon: "121.44", name: "土城", address: { railway: "土城", suburb: "土城區", city: "新北市", country: "臺灣" } };
   assert.equal(fromNominatim(r).location, "土城區, 新北市, 臺灣");
 });
+
+const { match: matchDisaster, checkUrl, pickTitle, createDisasterResolver } = require("../src/services/disasters");
+
+test("disaster matching reads keywords, text and URL slugs", () => {
+  assert.equal(matchDisaster("澳洲森林大火").id, "au-longwood");
+  assert.equal(matchDisaster("洛杉磯 Eaton 大火").id, "la-altadena");
+  assert.equal(matchDisaster("馬太鞍溪堰塞湖水位降逾百公尺").id, "mataian-lake");
+  assert.equal(matchDisaster("光復鄉溢流災情").id, "mataian-flood");
+  assert.equal(matchDisaster("https://www.rnz.co.nz/news/world/583728/australia-bushfires-to-burn").id, "au-longwood");
+  assert.equal(matchDisaster("大火"), null); // too vague
+  assert.equal(matchDisaster("台北"), null);
+});
+
+test("news URLs must be public http(s)", () => {
+  assert.ok(checkUrl("https://udn.com/news/story/7266/9142701"));
+  for (const bad of ["ftp://x.com/a", "http://localhost:3000/", "http://127.0.0.1/", "http://10.0.0.5/", "http://192.168.1.1/", "http://169.254.169.254/latest", "http://[::1]/", "not a url"]) {
+    assert.throws(() => checkUrl(bad), (e) => e.status === 400, bad);
+  }
+});
+
+test("pickTitle prefers og:title and decodes entities", () => {
+  const html = '<title>x</title><meta property="og:title" content="馬太鞍溪堰塞湖 &amp; 光復">';
+  assert.equal(pickTitle(html).title, "馬太鞍溪堰塞湖 & 光復");
+  assert.equal(pickTitle("<title> LA fire </title>").title, "LA fire");
+});
+
+test("news resolver reads the title and follows only safe redirects", async () => {
+  const page = (html) => ({ ok: true, status: 200, headers: new Map(), body: new Response(html).body });
+  const fetchImpl = async (url) => {
+    if (String(url).includes("short")) return { ok: false, status: 301, headers: new Map([["location", "https://news.example.com/a"]]) };
+    return page('<meta property="og:title" content="Eaton fire destroys homes in Altadena">');
+  };
+  const resolve = createDisasterResolver({ fetchImpl });
+  const r = await resolve("https://short.example.com/x");
+  assert.equal(r.match.id, "la-altadena");
+  assert.equal(r.title, "Eaton fire destroys homes in Altadena");
+  const evil = async () => ({ ok: false, status: 302, headers: new Map([["location", "http://169.254.169.254/"]]) });
+  await assert.rejects(createDisasterResolver({ fetchImpl: evil })("https://a.example.com/"), (e) => e.status === 400);
+  assert.equal((await resolve("澳洲大火")).match.id, "au-longwood");
+});

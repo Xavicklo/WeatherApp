@@ -400,11 +400,45 @@
     }
   }
 
+  /**
+   * Comparison mode: keyword, pasted text or a news URL → the matching before/after preset
+   * (a small text-to-place step, like a GeoAI tool). Anything else is treated as a place name.
+   */
+  async function findDisaster(query) {
+    const isUrl = /^https?:\/\//i.test(query);
+    setStatus(isUrl ? "正在讀取新聞標題…" : `正在判斷「${query}」…`);
+    try {
+      const res = await fetch("/api/disaster?" + new URLSearchParams({ q: query }));
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "暫時無法判斷。");
+      if (data.match) {
+        window.ImageryCompare.open(data.match.id);
+        const from = data.title ? `從新聞標題「${data.title}」判斷為：` : "判斷為：";
+        setStatus(`${from}${data.match.name}`);
+        return;
+      }
+      if (isUrl) {
+        setStatus(data.title ? `新聞「${data.title}」沒有對應的災害案例。` : "讀不到這篇新聞的標題，也沒有對應的災害案例。", "error");
+        return;
+      }
+      flyToPlace(query); // not a known disaster: just move the map there
+    } catch (err) {
+      setStatus(err.message, "error");
+    }
+  }
+
+  document.querySelectorAll(".examples button").forEach((b) =>
+    b.addEventListener("click", () => {
+      els.input.value = b.dataset.example;
+      findDisaster(b.dataset.example);
+    })
+  );
+
   els.form.addEventListener("submit", (e) => {
     e.preventDefault();
     const query = els.input.value.trim();
     if (isCompare() && map) {
-      if (query) flyToPlace(query);
+      if (query) findDisaster(query);
       return;
     }
     searchAddress(els.input.value);

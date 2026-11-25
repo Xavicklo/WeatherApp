@@ -144,6 +144,7 @@
       const q = input.value.trim();
       // one CJK character is already a word (土, 政); Latin needs two letters
       if (!q || (!CJK.test(q) && q.length < 2)) return close();
+      if (/^https?:\/\//i.test(q) || q.length > 40) return close(); // a pasted URL or paragraph, not a place name
       timer = setTimeout(() => search(q), DELAY_MS);
     });
 

@@ -417,8 +417,14 @@
           swipe.reset();
         }
 
-        function open() {
-          if (active) return;
+        function open(presetId) {
+          if (active) {
+            if (presetId) {
+              setPanel(true);
+              applyPreset(presetId);
+            }
+            return;
+          }
           active = true;
           panel.hidden = false;
           button.setAttribute("aria-expanded", "true");
@@ -431,7 +437,7 @@
           swipe.place();
           map.closePopup();
           document.dispatchEvent(new CustomEvent("compare:change", { detail: { active: true } }));
-          applyPreset(presetSelect.value === "custom" ? PRESETS[0].id : presetSelect.value);
+          applyPreset(presetId || (presetSelect.value === "custom" ? PRESETS[0].id : presetSelect.value));
         }
 
         function shut() {
@@ -485,7 +491,7 @@
     attach,
     PRESETS,
     handleMapClick: () => foldOnMapClick(),
-    open: () => openCompare(),
+    open: (presetId) => openCompare(presetId), // optionally straight to one preset
     close: () => closeCompare(),
   };
 })();
