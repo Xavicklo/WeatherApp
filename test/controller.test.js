@@ -69,3 +69,17 @@ test("coordinates use the reverse geocoder for a place name, in parallel with th
   assert.equal(res.body.location, "Zhongshan, Taipei, Taiwan");
   assert.deepEqual(started.sort(), ["name", "wx"]);
 });
+
+test("home page passes the Mapbox token to the map only when one is set", async () => {
+  const { createApp } = require("../src/app");
+  const fakes = { geocode: async () => null, forecast: async () => null, reverseGeocode: async () => null, cityLayer: async () => ({}) };
+  const get = (app) => new Promise((resolve) => {
+    const server = app.listen(0, async () => {
+      const res = await fetch(`http://localhost:${server.address().port}/`);
+      resolve(await res.text());
+      server.close();
+    });
+  });
+  assert.match(await get(createApp({ ...fakes, mapboxToken: "pk.test123" })), /data-mapbox-token="pk\.test123"/);
+  assert.match(await get(createApp({ ...fakes, mapboxToken: "" })), /data-mapbox-token=""/);
+});

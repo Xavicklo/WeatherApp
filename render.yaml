@@ -12,3 +12,5 @@ services:
         value: production
       - key: NODE_VERSION
         value: "20"
+      - key: MAPBOX_TOKEN # optional, set it in the Render dashboard
+        sync: false
