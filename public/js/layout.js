@@ -31,6 +31,8 @@
     tab.setAttribute("aria-expanded", String(open));
     tab.setAttribute("aria-label", open ? "收起天氣預報" : "展開天氣預報");
     drawer.style.transform = ""; // drop any position left over from a drag
+    // On phones the sheet and a map popup would cover each other: opening the sheet closes the popup.
+    if (open && phone.matches) document.dispatchEvent(new CustomEvent("drawer:open"));
   }
 
   // ---------- tab: click, or drag (x on desktop, y on phones) ----------

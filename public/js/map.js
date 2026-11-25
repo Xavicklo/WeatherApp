@@ -312,6 +312,9 @@
       invalidateSize() {
         map.invalidateSize();
       },
+      closePopup() {
+        map.closePopup();
+      },
     };
   }
 

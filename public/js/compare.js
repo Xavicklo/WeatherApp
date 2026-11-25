@@ -48,6 +48,25 @@
       right: { source: "hls", value: "2025-10-11" },
     },
     {
+      id: "la-altadena",
+      name: "洛杉磯 Eaton 大火：Altadena 住宅區（2025）",
+      note: "2025 年 1 月的 Eaton 大火燒毀 Altadena 大片住宅。Esri 高解析影像（約 30 cm）可以看到一棟棟房子：左邊是 2022 年，右邊是 2025 年 8 月，只剩空地。",
+      center: [34.195, -118.15],
+      zoom: 16,
+      left: { source: "wayback", value: "51127" },
+      right: { source: "wayback", value: "13192" },
+      labels: ["Esri 高解析 · 2022", "Esri 高解析 · 2025-08"],
+    },
+    {
+      id: "au-longwood",
+      name: "澳洲維多利亞州 Longwood 森林大火（2026）",
+      note: "2026 年 1 月熱浪引發的森林大火，Longwood 附近燒了將近 15 萬公頃。右側灰紫色的大片區域就是燒毀範圍（1/4 對 1/24）。",
+      center: [-36.93, 145.45],
+      zoom: 11,
+      left: { source: "hls", value: "2026-01-04" },
+      right: { source: "hls", value: "2026-01-24" },
+    },
+    {
       id: "taiwan-s2",
       name: "全台：Sentinel-2 年度比對（2018 ↔ 2025）",
       note: "可以移到任何地方，比較城市開發、河道、海岸線的長期變化。",
@@ -356,6 +375,7 @@
           await Promise.all([leftPicker.set(p.left), rightPicker.set(p.right)]);
           map.flyTo(p.center, p.zoom, { duration: 1 });
           await update(false);
+          if (p.labels) swipe.setLabels(p.labels[0], p.labels[1]); // say when the imagery was taken, not the release date
           swipe.reset();
         }
 

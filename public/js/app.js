@@ -317,6 +317,7 @@
     console.error("Map failed to start:", err);
   }
   if (!map) document.body.classList.add("no-map");
+  else document.addEventListener("drawer:open", () => map.closePopup());
 
   function showOnMap(data) {
     if (!map || !data.point) return;
